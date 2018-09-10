@@ -14,4 +14,7 @@ pub enum DeadmockError {
     /// If `use-proxy` is true, a `proxy-url` must also be given.
     #[fail(display = "invalid proxy configuration! proxy url is required")]
     InvalidProxyConfig,
+    /// Generated if the runtime configuration cannot be created.
+    #[fail(display = "invalid runtime configuration!")]
+    InvalidRuntimeConfig,
 }
