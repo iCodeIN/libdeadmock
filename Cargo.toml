@@ -1,5 +1,3 @@
-cargo-features = ["edition"]
-
 [package]
 authors = ["Jason Ozias <jason.g.ozias@gmail.com>"]
 description = "API Mocking and Virtualization"
