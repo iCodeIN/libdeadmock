@@ -7,6 +7,9 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` 0.1.0
+//!
+//! Configuration for the deadmock server.
+#![feature(tool_lints, try_from)]
 #![deny(
     clippy::all,
     clippy::pedantic,
@@ -19,12 +22,22 @@
     unused_import_braces,
     unused_qualifications
 )]
-#![feature(tool_lints)]
+#![allow(clippy::stutter)]
+#![doc(html_root_url = "https://docs.rs/libdeadmock/0.1.0")]
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+// Macro imports
+#[macro_use]
+extern crate failure;
+#[macro_use]
+extern crate getset;
+#[macro_use]
+extern crate serde_derive;
+
+// Library Modules
+mod config;
+mod error;
+
+// Public API
+pub use crate::config::Proxy as ProxyConfig;
+pub use crate::config::Runtime as RuntimeConfig;
+pub use crate::error::DeadmockError;
