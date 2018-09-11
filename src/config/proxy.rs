@@ -8,7 +8,7 @@
 
 //! `libdeadmock` proxy configuration
 use clap::ArgMatches;
-use crate::error::DeadmockError::InvalidProxyConfig;
+use crate::error::Error::InvalidProxyConfig;
 use failure::Error;
 use std::convert::TryFrom;
 

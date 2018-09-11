@@ -40,4 +40,4 @@ mod error;
 // Public API
 pub use crate::config::Proxy as ProxyConfig;
 pub use crate::config::Runtime as RuntimeConfig;
-pub use crate::error::DeadmockError;
+pub use crate::error::Error as DeadmockError;

@@ -8,9 +8,9 @@
 
 //! `libdeadmock` errors
 
-/// `deadmock` errors
+/// `libdeadmock` errors
 #[derive(Copy, Clone, Debug, Fail)]
-pub enum DeadmockError {
+pub enum Error {
     /// If `use-proxy` is true, a `proxy-url` must also be given.
     #[fail(display = "invalid proxy configuration! proxy url is required")]
     InvalidProxyConfig,
