@@ -13,20 +13,20 @@ use tomlenv::Environment;
 const ENV: &str = "env";
 
 /// The runtime environment configuration for deadmock.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Getters, Hash, Eq, PartialEq, Serialize)]
-pub struct Runtime<'a> {
+#[derive(Clone, Debug, Default, Deserialize, Getters, Hash, Eq, PartialEq, Serialize)]
+pub struct Runtime {
     /// The IP address to listen on.
     #[get = "pub"]
-    ip: Option<&'a str>,
+    ip: Option<String>,
     /// The port to listen on.
     #[get = "pub"]
     port: Option<u32>,
     /// The path to the mappings and templates
     #[get = "pub"]
-    path: Option<&'a str>,
+    path: Option<String>,
 }
 
-impl<'a> Runtime<'a> {
+impl Runtime {
     /// Get the `env` environment variable, setting it to `local` if the variable is not found or set already.
     ///
     /// # Example

@@ -81,7 +81,7 @@ use std::convert::TryFrom;
 /// # }
 /// ```
 #[derive(Clone, Debug, Default, Getters, Hash, Eq, PartialEq, Setters)]
-pub struct Proxy<'a> {
+pub struct Proxy {
     /// Turn the proxy on.  If this is true, `proxy_url` is required.
     #[get = "pub"]
     #[set = "pub"]
@@ -89,18 +89,18 @@ pub struct Proxy<'a> {
     /// The proxy url.
     #[get = "pub"]
     #[set = "pub"]
-    proxy_url: Option<&'a str>,
+    proxy_url: Option<String>,
     /// Username for proxy authentication.
     #[get = "pub"]
     #[set = "pub"]
-    proxy_username: Option<&'a str>,
+    proxy_username: Option<String>,
     /// Password for proxy authentication.
     #[get = "pub"]
     #[set = "pub"]
-    proxy_password: Option<&'a str>,
+    proxy_password: Option<String>,
 }
 
-impl<'a> Proxy<'a> {
+impl Proxy {
     /// Create a new minimal proxy configuration.
     ///
     /// # Example
@@ -115,7 +115,7 @@ impl<'a> Proxy<'a> {
     ///     let proxy_config = ProxyConfig::new(true, Some("http://a.proxyurl.com"));
     /// # }
     /// ```
-    pub fn new(use_proxy: bool, proxy_url: Option<&'a str>) -> Self {
+    pub fn new(use_proxy: bool, proxy_url: Option<String>) -> Self {
         Self {
             use_proxy,
             proxy_url,
@@ -125,14 +125,14 @@ impl<'a> Proxy<'a> {
     }
 }
 
-impl<'a> TryFrom<&'a ArgMatches<'a>> for Proxy<'a> {
+impl<'a> TryFrom<&'a ArgMatches<'a>> for Proxy {
     type Error = Error;
 
     fn try_from(matches: &'a ArgMatches<'a>) -> Result<Self, Error> {
         let use_proxy = matches.is_present("proxy");
-        let proxy_url = matches.value_of("proxy-url");
-        let proxy_username = matches.value_of("proxy-username");
-        let proxy_password = matches.value_of("proxy-password");
+        let proxy_url = matches.value_of("proxy-url").map(|s| s.to_string());
+        let proxy_username = matches.value_of("proxy-username").map(|s| s.to_string());
+        let proxy_password = matches.value_of("proxy-password").map(|s| s.to_string());
 
         if use_proxy && proxy_url.is_some() {
             Ok(Self {
@@ -233,9 +233,12 @@ mod test {
         match Proxy::try_from(&matches) {
             Ok(proxy_config) => {
                 assert!(proxy_config.use_proxy());
-                assert_eq!(proxy_config.proxy_url(), &Some("http://a.proxy.com"));
-                assert_eq!(proxy_config.proxy_username(), &Some("test"));
-                assert_eq!(proxy_config.proxy_password(), &Some("test"));
+                assert_eq!(
+                    proxy_config.proxy_url(),
+                    &Some("http://a.proxy.com".to_string())
+                );
+                assert_eq!(proxy_config.proxy_username(), &Some("test".to_string()));
+                assert_eq!(proxy_config.proxy_password(), &Some("test".to_string()));
             }
             Err(_) => assert!(false, "Not expected to error!"),
         }
@@ -248,7 +251,10 @@ mod test {
         match Proxy::try_from(&matches) {
             Ok(proxy_config) => {
                 assert!(proxy_config.use_proxy());
-                assert_eq!(proxy_config.proxy_url(), &Some("http://a.proxy.com"));
+                assert_eq!(
+                    proxy_config.proxy_url(),
+                    &Some("http://a.proxy.com".to_string())
+                );
                 assert!(proxy_config.proxy_username().is_none());
                 assert!(proxy_config.proxy_password().is_none());
             }
