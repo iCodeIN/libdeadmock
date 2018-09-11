@@ -17,9 +17,15 @@ version = "0.1.2"
 
 [dependencies]
 clap = "2"
-dirs = "1"
 failure = "0"
 getset = "0"
+http = "0"
 serde = "1"
 serde_derive = "1"
+serde_json = "1"
 tomlenv = "0"
+toml = "0.4.6"
+
+[dependencies.uuid]
+version = "0"
+features = ["serde", "v4"]

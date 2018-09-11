@@ -36,8 +36,14 @@ extern crate serde_derive;
 // Library Modules
 mod config;
 mod error;
+mod util;
 
 // Public API
+pub use crate::config::Header as HeaderConfig;
+pub use crate::config::Mapping as MappingConfig;
+pub use crate::config::Mappings as MappingsConfig;
 pub use crate::config::Proxy as ProxyConfig;
+pub use crate::config::Request as RequestConfig;
+pub use crate::config::Response as ResponseConfig;
 pub use crate::config::Runtime as RuntimeConfig;
 pub use crate::error::Error as DeadmockError;

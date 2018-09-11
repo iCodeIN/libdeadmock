@@ -7,9 +7,18 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` configuration
-
+mod header;
+mod mapping;
+mod mappings;
 mod proxy;
+mod request;
+mod response;
 mod runtime;
 
+pub use self::header::Header;
+pub use self::mapping::Mapping;
+pub use self::mappings::Mappings;
 pub use self::proxy::Proxy;
+pub use self::request::Request;
+pub use self::response::Response;
 pub use self::runtime::Runtime;
