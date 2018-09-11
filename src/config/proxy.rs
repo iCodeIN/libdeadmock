@@ -77,7 +77,7 @@ use std::convert::TryFrom;
 ///     let disabled_proxy = ProxyConfig::default();
 ///
 ///     // When using a proxy.
-///     let proxy_config = ProxyConfig::new(true, Some("http://a.proxyurl.com"));
+///     let proxy_config = ProxyConfig::new(true, Some("http://a.proxyurl.com".to_string()));
 /// # }
 /// ```
 #[derive(Clone, Debug, Default, Getters, Hash, Eq, PartialEq, Setters)]
@@ -112,7 +112,7 @@ impl Proxy {
     ///     let disabled_proxy = ProxyConfig::default();
     ///
     ///     // When using a proxy.
-    ///     let proxy_config = ProxyConfig::new(true, Some("http://a.proxyurl.com"));
+    ///     let proxy_config = ProxyConfig::new(true, Some("http://a.proxyurl.com".to_string()));
     /// # }
     /// ```
     pub fn new(use_proxy: bool, proxy_url: Option<String>) -> Self {
