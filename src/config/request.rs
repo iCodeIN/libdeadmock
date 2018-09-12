@@ -8,6 +8,8 @@
 
 //! `libdeadmock` request matching configuration
 use crate::config::Header;
+use getset::Getters;
+use serde_derive::{Deserialize, Serialize};
 
 /// `libdeadmock` request matching configuration.
 #[derive(Clone, Debug, Default, Deserialize, Getters, Hash, Eq, PartialEq, Serialize)]
@@ -31,7 +33,7 @@ pub struct Request {
 }
 
 #[cfg(test)]
-pub mod test {
+crate mod test {
     use super::Request;
     use crate::config::header::test::content_type_header;
 
@@ -40,14 +42,14 @@ pub mod test {
     const FULL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}]}"#;
     const BAD_REQUEST: &str = r#"{"method":}"#;
 
-    pub fn partial_request() -> Request {
+    crate fn partial_request() -> Request {
         let mut partial_request = Request::default();
         partial_request.method = Some("GET".to_string());
         partial_request.url = Some("http://a.url.com".to_string());
         partial_request
     }
 
-    pub fn full_request() -> Request {
+    crate fn full_request() -> Request {
         let mut request = partial_request();
         request.url_pattern = Some(".*jasonozias.*".to_string());
         request.headers = Some(vec![content_type_header()]);

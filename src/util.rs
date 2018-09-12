@@ -11,7 +11,7 @@ use failure::Error;
 use std::fs::{self, DirEntry};
 use std::path::Path;
 
-pub fn visit_dirs<F>(dir: &Path, cb: &mut F) -> Result<(), Error>
+crate fn visit_dirs<F>(dir: &Path, cb: &mut F) -> Result<(), Error>
 where
     F: FnMut(&DirEntry) -> Result<(), Error>,
 {

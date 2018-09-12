@@ -8,6 +8,8 @@
 
 //! `libdeadmock` response templating configuration
 use crate::config::Header;
+use getset::Getters;
+use serde_derive::{Deserialize, Serialize};
 
 /// `libdeadmock` response configuration
 #[derive(Clone, Debug, Default, Deserialize, Getters, Hash, Eq, PartialEq, Serialize)]
@@ -35,7 +37,7 @@ pub struct Response {
 }
 
 #[cfg(test)]
-pub mod test {
+crate mod test {
     use super::Response;
     use crate::config::header::test::{additional_proxy_request_headers, content_type_header};
 
@@ -44,7 +46,7 @@ pub mod test {
     const FULL_RESPONSE: &str = r#"{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}"#;
     const BAD_RESPONSE: &str = r#"{"status":"abc"}"#;
 
-    pub fn partial_response() -> Response {
+    crate fn partial_response() -> Response {
         let mut response = Response::default();
         response.status = Some(200);
         response.proxy_base_url = Some("http://cdcproxy.kroger.com".to_string());
@@ -52,7 +54,7 @@ pub mod test {
         response
     }
 
-    pub fn full_response() -> Response {
+    crate fn full_response() -> Response {
         let mut response = partial_response();
         response.body_file_name = Some("test.json".to_string());
         response.additional_proxy_request_headers = Some(vec![additional_proxy_request_headers()]);

@@ -10,6 +10,7 @@
 use clap::ArgMatches;
 use crate::error::Error::InvalidProxyConfig;
 use failure::Error;
+use getset::{Getters, Setters};
 use std::convert::TryFrom;
 
 /// The proxy configuration for deadmock

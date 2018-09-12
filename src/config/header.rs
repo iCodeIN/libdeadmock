@@ -7,39 +7,43 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` header configuration
-//!
+use getset::{Getters, MutGetters, Setters};
+use serde_derive::{Deserialize, Serialize};
+
 /// `libdeadmock` header configuration
-#[derive(Clone, Debug, Default, Deserialize, Getters, Hash, Eq, PartialEq, Serialize, Setters)]
+#[derive(
+    Clone, Debug, Default, Deserialize, Eq, Getters, Hash, MutGetters, PartialEq, Serialize, Setters,
+)]
 pub struct Header {
     /// The header key, i.e. 'Content-Type'
     #[get = "pub"]
-    #[set = "pub"]
+    #[get_mut]
     key: String,
     /// The header value, i.e. 'application/json'
     #[get = "pub"]
-    #[set = "pub"]
+    #[get_mut]
     value: String,
 }
 
 #[cfg(test)]
-pub mod test {
+crate mod test {
     use super::Header;
 
     const EMPTY_HEADER: &str = r#"{"key":"","value":""}"#;
     const CONTENT_TYPE_JSON: &str = r#"{"key":"Content-Type","value":"application/json"}"#;
     const BAD_HEADER_JSON: &str = r#"{"key":"blah"}"#;
 
-    pub fn content_type_header() -> Header {
+    crate fn content_type_header() -> Header {
         Header {
             key: "Content-Type".to_string(),
             value: "application/json".to_string(),
         }
     }
 
-    pub fn additional_proxy_request_headers() -> Header {
+    crate fn additional_proxy_request_headers() -> Header {
         let mut header = Header::default();
-        header.set_key("Authorization".to_string());
-        header.set_value("Basic abcdef123".to_string());
+        (*header.key_mut()) = "Authorization".to_string();
+        (*header.value_mut()) = "Basic abcdef123".to_string();
         header
     }
 

@@ -9,8 +9,11 @@
 //! `libdeadmock` request/response mappings
 use clap::ArgMatches;
 use crate::config::Mapping;
+use crate::error::Error::MappingKeyCollision;
 use crate::util;
 use failure::Error;
+use getset::Getters;
+use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fs::File;
@@ -30,7 +33,7 @@ pub struct Mappings {
 impl<'a> TryFrom<&'a ArgMatches<'a>> for Mappings {
     type Error = Error;
 
-    fn try_from(matches: &'a ArgMatches) -> Result<Self, Error> {
+    fn try_from(matches: &'a ArgMatches<'_>) -> Result<Self, Error> {
         let mut mappings = Self::default();
 
         let mappings_path = if let Some(mappings_path) = matches.value_of("mappings_path") {
@@ -43,10 +46,13 @@ impl<'a> TryFrom<&'a ArgMatches<'a>> for Mappings {
             let f = File::open(entry.path())?;
             let mut reader = BufReader::new(f);
             let mut buffer = Vec::new();
-            reader.read_to_end(&mut buffer)?;
+            let _bytes_read = reader.read_to_end(&mut buffer)?;
             let mapping: Mapping = toml::from_slice(&buffer)?;
-            mappings.inner.insert(Uuid::new_v4(), mapping);
-            Ok(())
+            if let Some(_v) = mappings.inner.insert(Uuid::new_v4(), mapping) {
+                Err(MappingKeyCollision.into())
+            } else {
+                Ok(())
+            }
         })?;
         Ok(mappings)
     }

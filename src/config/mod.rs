@@ -7,18 +7,16 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` configuration
-mod header;
-mod mapping;
-mod mappings;
-mod proxy;
-mod request;
-mod response;
-mod runtime;
+crate mod header;
+crate mod mapping;
+crate mod mappings;
+crate mod proxy;
+crate mod request;
+crate mod response;
+crate mod runtime;
 
-pub use self::header::Header;
-pub use self::mapping::Mapping;
-pub use self::mappings::Mappings;
-pub use self::proxy::Proxy;
-pub use self::request::Request;
-pub use self::response::Response;
-pub use self::runtime::Runtime;
+crate use self::header::Header;
+crate use self::mapping::Mapping;
+crate use self::request::Request;
+crate use self::response::Response;
+crate use self::runtime::Runtime;

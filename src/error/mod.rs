@@ -7,6 +7,7 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` errors
+use failure::Fail;
 
 /// `libdeadmock` errors
 #[derive(Copy, Clone, Debug, Fail)]
@@ -17,4 +18,7 @@ pub enum Error {
     /// Generated if the runtime configuration cannot be created.
     #[fail(display = "invalid runtime configuration!")]
     InvalidRuntimeConfig,
+    /// Generated if a mapping is inserted into the map with the same `Uuid` key.
+    #[fail(display = "mapping key collision")]
+    MappingKeyCollision,
 }

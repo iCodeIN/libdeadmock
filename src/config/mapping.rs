@@ -8,6 +8,8 @@
 
 //! `libdeadmock` request/response mapping
 use crate::config::{Request, Response};
+use getset::{Getters, MutGetters};
+use serde_derive::{Deserialize, Serialize};
 use std::cmp::{Ord, Ordering};
 use std::fmt;
 
@@ -40,7 +42,7 @@ impl PartialOrd for Mapping {
 }
 
 impl fmt::Display for Mapping {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let out = serde_json::to_string_pretty(self).map_err(|_| fmt::Error)?;
         writeln!(f);
         write!(f, "{}", out)
@@ -86,9 +88,15 @@ mod test {
         third.priority = 3;
 
         let mut mappings = BTreeMap::new();
-        mappings.insert(first, "first");
-        mappings.insert(second, "second");
-        mappings.insert(third, "third");
+        if let Some(_value) = mappings.insert(first, "first") {
+            assert!(false, "There was already an entry!");
+        }
+        if let Some(_value) = mappings.insert(second, "second") {
+            assert!(false, "There was already an entry!");
+        }
+        if let Some(_value) = mappings.insert(third, "third") {
+            assert!(false, "There was already an entry!");
+        }
 
         let priorities: Vec<(u8, &str)> = mappings.iter().map(|(k, v)| (k.priority, *v)).collect();
         assert_eq!(priorities, vec![(1, "second"), (3, "third"), (5, "first")]);

@@ -7,6 +7,8 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` runtime environment configuration
+use getset::Getters;
+use serde_derive::{Deserialize, Serialize};
 use std::env;
 use tomlenv::Environment;
 
