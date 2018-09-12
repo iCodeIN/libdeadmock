@@ -31,7 +31,7 @@ impl<'a> TryFrom<&'a ArgMatches<'a>> for Mappings {
     type Error = Error;
 
     fn try_from(matches: &'a ArgMatches) -> Result<Self, Error> {
-        let mut mappings = Mappings::default();
+        let mut mappings = Self::default();
 
         let mappings_path = if let Some(mappings_path) = matches.value_of("mappings_path") {
             PathBuf::from(mappings_path).join("mappings")
