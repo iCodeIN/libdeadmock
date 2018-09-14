@@ -6,7 +6,7 @@
 // option. All files in the project carrying such notice may not be copied,
 // modified, or distributed except according to those terms.
 
-//! `libdeadmock` configuration
+//! Configuration for the server.
 crate mod header;
 crate mod mapping;
 crate mod mappings;
@@ -15,8 +15,10 @@ crate mod request;
 crate mod response;
 crate mod runtime;
 
-crate use self::header::Header;
-crate use self::mapping::Mapping;
-crate use self::request::Request;
-crate use self::response::Response;
-crate use self::runtime::Runtime;
+pub use self::header::Header;
+pub use self::mapping::Mapping;
+pub use self::mappings::Mappings;
+pub use self::proxy::Proxy;
+pub use self::request::Request;
+pub use self::response::Response;
+pub use self::runtime::Runtime;

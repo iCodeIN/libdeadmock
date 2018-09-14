@@ -9,7 +9,7 @@
 //! `libdeadmock` request/response mappings
 use clap::ArgMatches;
 use crate::config::Mapping;
-use crate::error::Error::MappingKeyCollision;
+use crate::error::ErrorKind::MappingKeyCollision;
 use crate::util;
 use failure::Error;
 use getset::Getters;
@@ -55,5 +55,31 @@ impl<'a> TryFrom<&'a ArgMatches<'a>> for Mappings {
             }
         })?;
         Ok(mappings)
+    }
+}
+
+#[cfg(test)]
+crate mod test {
+    use super::Mappings;
+    use clap::{App, Arg};
+    use failure::Error;
+    use std::convert::TryFrom;
+
+    crate fn test_mappings() -> Result<Mappings, Error> {
+        let args = vec!["test", "-m", "tests"];
+
+        let matches = App::new(env!("CARGO_PKG_NAME"))
+            .version(env!("CARGO_PKG_VERSION"))
+            .author(env!("CARGO_PKG_AUTHORS"))
+            .about("Proxy server for hosting mocked responses on match criteria")
+            .arg(
+                Arg::with_name("mappings_path")
+                    .short("m")
+                    .long("mappings_path")
+                    .takes_value(true)
+                    .value_name("MAPPINGS_PATH"),
+            ).get_matches_from(args);
+
+        Ok(Mappings::try_from(&matches)?)
     }
 }

@@ -6,7 +6,7 @@
 // option. All files in the project carrying such notice may not be copied,
 // modified, or distributed except according to those terms.
 
-//! `libdeadmock` logging configuration
+//! Logging for the server.
 use clap::ArgMatches;
 use crate::config::Runtime;
 use failure::Error;
@@ -16,7 +16,7 @@ use slog_async::Async;
 use slog_term::{CompactFormat, TermDecorator};
 use std::convert::TryFrom;
 
-/// `libdeadmock` slog logging configuration
+/// `slog` loggers for stdout/stderr.
 #[derive(Clone, Debug, Default, Getters)]
 pub struct Loggers {
     /// An optional stdout logger.

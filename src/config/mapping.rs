@@ -50,7 +50,7 @@ impl fmt::Display for Mapping {
 }
 
 #[cfg(test)]
-mod test {
+crate mod test {
     use super::Mapping;
     use crate::config::request::test::{full_request, partial_request};
     use crate::config::response::test::{full_response, partial_response};
@@ -61,7 +61,7 @@ mod test {
     const FULL_MAPPING: &str = r#"{"priority":10,"request":{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}]},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}}"#;
     const BAD_MAPPING_JSON: &str = r#"{"priority":"abc"}"#;
 
-    fn partial_mapping() -> Mapping {
+    crate fn partial_mapping() -> Mapping {
         let mut mapping = Mapping::default();
         mapping.priority = 10;
         mapping.request = partial_request();

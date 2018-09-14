@@ -8,7 +8,7 @@
 
 //! `libdeadmock` proxy configuration
 use clap::ArgMatches;
-use crate::error::Error::InvalidProxyConfig;
+use crate::error::ErrorKind::InvalidProxyConfig;
 use failure::Error;
 use getset::{Getters, Setters};
 use std::convert::TryFrom;
@@ -22,7 +22,7 @@ use std::convert::TryFrom;
 /// # #![feature(try_from)]
 /// # use clap::{App, Arg};
 /// # use failure::Error;
-/// # use libdeadmock::ProxyConfig;
+/// # use libdeadmock::config;
 /// # use std::convert::TryFrom;
 /// #
 /// # fn test_cli() -> App<'static, 'static> {
@@ -60,7 +60,7 @@ use std::convert::TryFrom;
 /// # fn proxy_config() -> Result<(), Error> {
 ///     let arg_vec = vec!["test-cli", "-p", "--proxy-url", "http://a.proxy.com"];
 ///     let matches = test_cli().get_matches_from_safe(arg_vec)?;
-///     let proxy_config = ProxyConfig::try_from(&matches)?;
+///     let proxy_config = config::Proxy::try_from(&matches)?;
 /// #     Ok(())
 /// # }
 /// #
@@ -71,14 +71,14 @@ use std::convert::TryFrom;
 ///
 /// ## Minimal
 /// ```
-/// # use libdeadmock::ProxyConfig;
+/// # use libdeadmock::config;
 /// #
 /// # fn main() {
 ///     // When the proxy is disabled.
-///     let disabled_proxy = ProxyConfig::default();
+///     let disabled_proxy = config::Proxy::default();
 ///
 ///     // When using a proxy.
-///     let proxy_config = ProxyConfig::new(true, Some("http://a.proxyurl.com".to_string()));
+///     let proxy_config = config::Proxy::new(true, Some("http://a.proxyurl.com".to_string()));
 /// # }
 /// ```
 #[derive(Clone, Debug, Default, Getters, Hash, Eq, PartialEq, Setters)]
@@ -106,14 +106,14 @@ impl Proxy {
     ///
     /// # Example
     /// ```
-    /// # use libdeadmock::ProxyConfig;
+    /// # use libdeadmock::config;
     /// #
     /// # fn main() {
     ///     // When the proxy is disabled.
-    ///     let disabled_proxy = ProxyConfig::default();
+    ///     let disabled_proxy = config::Proxy::default();
     ///
     ///     // When using a proxy.
-    ///     let proxy_config = ProxyConfig::new(true, Some("http://a.proxyurl.com".to_string()));
+    ///     let proxy_config = config::Proxy::new(true, Some("http://a.proxyurl.com".to_string()));
     /// # }
     /// ```
     pub fn new(use_proxy: bool, proxy_url: Option<String>) -> Self {

@@ -6,7 +6,7 @@
 // option. All files in the project carrying such notice may not be copied,
 // modified, or distributed except according to those terms.
 
-//! `libdeadmock` runtime environment configuration
+//! Runtime environment configuration
 use getset::Getters;
 use serde_derive::{Deserialize, Serialize};
 use std::env;
@@ -34,10 +34,10 @@ impl Runtime {
     /// # Example
     ///
     /// ```
-    /// # use libdeadmock::RuntimeConfig;
+    /// # use libdeadmock::config;
     /// #
     /// # fn main() {
-    /// assert_eq!("local", RuntimeConfig::env());
+    /// assert_eq!("local", config::Runtime::env());
     /// # }
     /// ```
     pub fn env() -> String {
