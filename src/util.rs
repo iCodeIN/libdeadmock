@@ -8,8 +8,15 @@
 
 //! `libdeadmock` utilities
 use failure::Error;
+use futures::{future, Future};
+use http::header::{HeaderValue, CONTENT_TYPE};
+use http::{Response, StatusCode};
+use serde_derive::Serialize;
 use std::fs::{self, DirEntry};
 use std::path::Path;
+
+#[allow(box_pointers)]
+crate type FutResponse = Box<dyn Future<Item = Response<String>, Error = String> + Send>;
 
 crate fn visit_dirs<F>(dir: &Path, cb: &mut F) -> Result<(), Error>
 where
@@ -26,4 +33,29 @@ where
         }
     }
     Ok(())
+}
+
+#[allow(box_pointers)]
+crate fn error_response_fut(body: String, status_code: StatusCode) -> FutResponse {
+    Box::new(future::ok(error_response(body, status_code)))
+}
+
+crate fn error_response(message: String, status_code: StatusCode) -> Response<String> {
+    let mut response = Response::builder();
+    let _ = response
+        .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+        .status(status_code);
+
+    if let Ok(message) = serde_json::to_string(&ErrorMessage { message }) {
+        if let Ok(response) = response.body(message) {
+            return response;
+        }
+    }
+
+    Response::new(r#"{ "message": "Unable to process body" }"#.to_string())
+}
+
+#[derive(Serialize)]
+struct ErrorMessage {
+    message: String,
 }

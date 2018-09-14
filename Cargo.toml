@@ -17,12 +17,20 @@ version = "0.1.2"
 
 [dependencies]
 bytes = "0"
+cached = "0"
 chrono = "0"
 clap = "2"
+colored = "1"
 failure = "0"
+futures = "0.1"
 getset = "0"
 http = "0"
 httparse = "1"
+hyper = "0"
+hyper-proxy = "0"
+hyper-tls = "0"
+lazy_static = "1"
+rand = "0"
 serde = "1"
 serde_derive = "1"
 serde_json = "1"
@@ -30,8 +38,11 @@ slog-async = "2"
 slog-term = "2"
 slog-try = "0"
 toml = "0"
+tokio-async-await = "0"
+tokio-codec = "0"
 tokio-io = "0"
 tomlenv = "0"
+typed-headers = "0"
 
 [dependencies.slog]
 version = "2"
@@ -40,3 +51,9 @@ features = ["max_level_trace", "release_max_level_trace"]
 [dependencies.uuid]
 version = "0"
 features = ["serde", "u128", "v4"]
+
+[build-dependencies]
+vergen = "2"
+
+[patch.crates-io]
+hyper-proxy = { path = "../hyper-proxy" }

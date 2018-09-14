@@ -9,4 +9,4 @@
 //! Codecs used by the async runtime.
 crate mod inbound;
 
-pub use self::inbound::Http;
+crate use self::inbound::Http;

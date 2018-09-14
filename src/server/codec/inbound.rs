@@ -16,7 +16,7 @@ use tokio_io::codec::{Decoder, Encoder};
 
 /// HTTP codec for tokio.
 #[derive(Copy, Clone, Debug)]
-pub struct Http;
+crate struct Http;
 
 // Right now `write!` on `Vec<u8>` goes through io::Write and is not
 // super speedy, so inline a less-crufty implementation here which
