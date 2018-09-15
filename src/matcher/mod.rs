@@ -20,8 +20,8 @@ crate mod method;
 crate mod url;
 
 pub use self::header::ExactMatchAllHeaders;
-pub use self::method::ExactMatchMethod;
-pub use self::url::ExactMatchUrl;
+pub use self::method::ExactMatch as ExactMatchMethod;
+pub use self::url::ExactMatch as ExactMatchUrl;
 
 /// A request matcher
 pub trait RequestMatch: fmt::Debug + fmt::Display {

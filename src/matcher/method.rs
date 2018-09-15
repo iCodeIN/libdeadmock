@@ -17,12 +17,12 @@ use std::fmt;
 
 /// Exactly match an HTTP method.
 #[derive(Clone, Debug, Default)]
-pub struct ExactMatchMethod {
+pub struct ExactMatch {
     stdout: Option<Logger>,
     stderr: Option<Logger>,
 }
 
-impl ExactMatchMethod {
+impl ExactMatch {
     /// Add a stdout logger
     pub fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
         self.stdout = stdout;
@@ -36,7 +36,7 @@ impl ExactMatchMethod {
     }
 }
 
-impl RequestMatch for ExactMatchMethod {
+impl RequestMatch for ExactMatch {
     fn is_match(
         &self,
         request: &Request<()>,
@@ -56,7 +56,7 @@ impl RequestMatch for ExactMatchMethod {
     }
 }
 
-impl fmt::Display for ExactMatchMethod {
+impl fmt::Display for ExactMatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Exact Match On Method")
     }
