@@ -18,7 +18,7 @@ use std::fmt;
 
 /// Exactly match all headers on a HTTP request.
 #[derive(Clone, Debug, Default)]
-pub struct ExactMatchAllHeaders {
+pub struct ExactMatch {
     stdout: Option<Logger>,
     stderr: Option<Logger>,
 }
@@ -26,7 +26,7 @@ pub struct ExactMatchAllHeaders {
 type HeaderTuple = (HeaderName, HeaderValue);
 type HeaderTupleRef<'a> = (&'a HeaderName, &'a HeaderValue);
 
-impl ExactMatchAllHeaders {
+impl ExactMatch {
     /// Add a stdout logger
     pub fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
         self.stdout = stdout;
@@ -67,13 +67,13 @@ impl ExactMatchAllHeaders {
     }
 }
 
-impl fmt::Display for ExactMatchAllHeaders {
+impl fmt::Display for ExactMatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Exact Match All Headers")
     }
 }
 
-impl RequestMatch for ExactMatchAllHeaders {
+impl RequestMatch for ExactMatch {
     fn is_match(
         &self,
         request: &Request<()>,

@@ -19,7 +19,7 @@ crate mod header;
 crate mod method;
 crate mod url;
 
-pub use self::header::ExactMatchAllHeaders;
+pub use self::header::ExactMatch as ExactMatchAllHeaders;
 pub use self::method::ExactMatch as ExactMatchMethod;
 pub use self::url::ExactMatch as ExactMatchUrl;
 
