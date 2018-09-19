@@ -22,7 +22,11 @@ crate mod method;
 #[cfg(feature = "url")]
 crate mod url;
 
-#[cfg(all(feature = "exact_match", feature = "header", feature = "all_headers"))]
+#[cfg(all(
+    feature = "exact_match",
+    feature = "header",
+    feature = "all_headers"
+))]
 pub use self::header::ExactMatch as ExactMatchAllHeaders;
 #[cfg(all(feature = "exact_match", feature = "method"))]
 pub use self::method::ExactMatch as ExactMatchMethod;
