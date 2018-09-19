@@ -57,3 +57,16 @@ vergen = "2"
 
 [patch.crates-io]
 hyper-proxy = { path = "../hyper-proxy" }
+
+[features]
+default = ["exact_match"]
+exact_match = ["url", "method", "header", "all_headers"]
+
+# Request Parts
+header = []
+url = []
+method = []
+
+# Match Types
+all_headers = []
+any_headers = []

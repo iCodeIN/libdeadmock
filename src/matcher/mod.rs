@@ -15,12 +15,18 @@ use slog::{b, kv, log, record, record_static, trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
 
+#[cfg(feature = "header")]
 crate mod header;
+#[cfg(feature = "method")]
 crate mod method;
+#[cfg(feature = "url")]
 crate mod url;
 
+#[cfg(all(feature = "exact_match", feature = "header", feature = "all_headers"))]
 pub use self::header::ExactMatch as ExactMatchAllHeaders;
+#[cfg(all(feature = "exact_match", feature = "method"))]
 pub use self::method::ExactMatch as ExactMatchMethod;
+#[cfg(all(feature = "exact_match", feature = "url"))]
 pub use self::url::ExactMatch as ExactMatchUrl;
 
 /// A request matcher
