@@ -9,7 +9,7 @@
 //! Request/Response handling for the async runtime.
 use cached::{cached_key_result, UnboundCache};
 use crate::config;
-use crate::matcher::{ExactMatchUrl, Matcher};
+use crate::matcher::{ExactMatchAllHeaders, ExactMatchMethod, ExactMatchUrl, Matcher};
 use crate::server::codec;
 use crate::server::header;
 use crate::util::{self, FutResponse};
@@ -108,6 +108,8 @@ pub fn handle(handler: Handler, stream: TcpStream) {
 fn respond(handler: Handler, request: &Request<()>) -> FutResponse {
     let mut matcher = Matcher::default();
     let _ = matcher.push(ExactMatchUrl::default().set_stdout(handler.stdout.clone()));
+    let _ = matcher.push(ExactMatchMethod::default().set_stdout(handler.stdout.clone()));
+    let _ = matcher.push(ExactMatchAllHeaders::default().set_stdout(handler.stdout.clone()));
 
     if let Ok(mapping) = matcher.get_match(&request, &handler.static_mappings) {
         try_trace!(handler.stdout, "{}", mapping);
