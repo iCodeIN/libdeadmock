@@ -16,6 +16,7 @@ repository = "https://github.com/rustyhorde/libdeadmock"
 version = "0.1.2"
 
 [dependencies]
+bitflags = "1"
 bytes = "0"
 cached = "0"
 chrono = "0"
@@ -60,13 +61,14 @@ hyper-proxy = { path = "../hyper-proxy" }
 
 [features]
 default = ["exact_match"]
-exact_match = ["url", "method", "header", "all_headers"]
+exact_match = ["url", "method", "headers", "all_headers", "one_header"]
 
 # Request Parts
+headers = []
 header = []
 url = []
 method = []
 
 # Match Types
 all_headers = []
-any_headers = []
+one_header = []

@@ -9,7 +9,7 @@
 //! Request/Response handling for the async runtime.
 use cached::{cached_key_result, UnboundCache};
 use crate::config;
-use crate::matcher::{ExactMatchUrl, Matcher};
+use crate::matcher::{Enabled, Matcher};
 use crate::server::codec;
 use crate::server::header;
 use crate::util::{self, FutResponse};
@@ -42,6 +42,7 @@ pub struct Handler {
     stderr: Option<Logger>,
     proxy_config: config::Proxy,
     files_path: PathBuf,
+    enabled: Enabled,
     static_mappings: config::Mappings,
     dynamic_mappings: Arc<Mutex<config::Mappings>>,
 }
@@ -49,6 +50,7 @@ pub struct Handler {
 impl Handler {
     /// Create a new `Handler` from the given config and tokio stream.
     pub fn new(
+        enabled: Enabled,
         static_mappings: config::Mappings,
         proxy_config: config::Proxy,
         files_path: PathBuf,
@@ -58,6 +60,7 @@ impl Handler {
             stderr: None,
             proxy_config,
             files_path,
+            enabled,
             static_mappings,
             dynamic_mappings: Arc::new(Mutex::new(config::Mappings::default())),
         }
@@ -106,8 +109,11 @@ pub fn handle(handler: Handler, stream: TcpStream) {
 
 #[allow(box_pointers)]
 fn respond(handler: Handler, request: &Request<()>) -> FutResponse {
-    let mut matcher = Matcher::default();
-    let _ = matcher.push(ExactMatchUrl::default().set_stdout(handler.stdout.clone()));
+    let matcher = Matcher::new(
+        handler.enabled,
+        handler.stdout.clone(),
+        handler.stderr.clone(),
+    );
 
     if let Ok(mapping) = matcher.get_match(&request, &handler.static_mappings) {
         try_trace!(handler.stdout, "{}", mapping);

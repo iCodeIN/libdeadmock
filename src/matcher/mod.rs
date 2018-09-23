@@ -7,6 +7,7 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request matching for the server.
+use bitflags::bitflags;
 use crate::config::{Mapping, Mappings, Request as RequestConfig};
 use crate::error::Error;
 use crate::error::ErrorKind::MappingNotFound;
@@ -15,8 +16,8 @@ use slog::{b, kv, log, record, record_static, trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
 
-#[cfg(feature = "header")]
-crate mod header;
+#[cfg(feature = "headers")]
+crate mod headers;
 #[cfg(feature = "method")]
 crate mod method;
 #[cfg(feature = "url")]
@@ -24,14 +25,28 @@ crate mod url;
 
 #[cfg(all(
     feature = "exact_match",
-    feature = "header",
+    feature = "headers",
     feature = "all_headers"
 ))]
-pub use self::header::ExactMatch as ExactMatchAllHeaders;
+pub use self::headers::ExactMatch as ExactMatchAllHeaders;
 #[cfg(all(feature = "exact_match", feature = "method"))]
 pub use self::method::ExactMatch as ExactMatchMethod;
 #[cfg(all(feature = "exact_match", feature = "url"))]
 pub use self::url::ExactMatch as ExactMatchUrl;
+
+bitflags!{
+    /// Enabled flags for request matching types
+    pub struct Enabled: u32 {
+        /// Enable the exact matching on url
+        const EXACT_URL         = 0b0000_0001;
+        /// Enable the exact matching on method
+        const EXACT_METHOD      = 0b0000_0010;
+        /// Enable the exact matching on all headers
+        const EXACT_ALL_HEADERS = 0b0000_0100;
+        /// Enable the exact matching on one header
+        const EXACT_ONE_HEADER  = 0b0000_1000;
+    }
+}
 
 /// A request matcher
 pub trait RequestMatch: fmt::Debug + fmt::Display {
@@ -44,7 +59,6 @@ pub trait RequestMatch: fmt::Debug + fmt::Display {
 }
 
 /// Try to match an incoming request to a mapping.
-#[derive(Default)]
 #[allow(box_pointers)]
 pub struct Matcher {
     /// The matchers setup for request matching.
@@ -67,6 +81,41 @@ impl fmt::Debug for Matcher {
 
 #[allow(box_pointers)]
 impl Matcher {
+    /// Create a new `Matcher`
+    pub fn new(enabled: Enabled, stdout: Option<Logger>, stderr: Option<Logger>) -> Self {
+        let mut matcher = Self {
+            matchers: vec![],
+            stdout,
+            stderr,
+        };
+
+        if enabled.contains(Enabled::EXACT_URL) {
+            let _ = matcher.push(
+                ExactMatchUrl::default()
+                    .set_stdout(matcher.stdout.clone())
+                    .set_stderr(matcher.stderr.clone()),
+            );
+        }
+
+        if enabled.contains(Enabled::EXACT_METHOD) {
+            let _ = matcher.push(
+                ExactMatchMethod::default()
+                    .set_stdout(matcher.stdout.clone())
+                    .set_stderr(matcher.stderr.clone()),
+            );
+        }
+
+        if enabled.contains(Enabled::EXACT_ALL_HEADERS) {
+            let _ = matcher.push(
+                ExactMatchAllHeaders::default()
+                    .set_stdout(matcher.stdout.clone())
+                    .set_stderr(matcher.stderr.clone()),
+            );
+        }
+
+        matcher
+    }
+
     /// Add a stdout logger
     pub fn set_stdout(&mut self, stdout: Option<Logger>) -> &mut Self {
         self.stdout = stdout;
@@ -80,7 +129,7 @@ impl Matcher {
     }
 
     /// Add a request matcher to the list.
-    pub fn push<T: RequestMatch + 'static>(&mut self, request_match: T) -> &mut Self {
+    fn push<T: RequestMatch + 'static>(&mut self, request_match: T) -> &mut Self {
         self.matchers.push(Box::new(request_match));
         self
     }
@@ -121,7 +170,7 @@ impl Matcher {
 mod test {
     use super::Matcher;
     use crate::config::mappings::test::test_mappings;
-    use crate::matcher::{ExactMatchAllHeaders, ExactMatchMethod, ExactMatchUrl};
+    use crate::matcher::Enabled;
     use http::Request;
 
     #[test]
@@ -133,10 +182,8 @@ mod test {
         let _ = request_builder.uri("/json");
         let _ = request_builder.header("Content-Type", "application/json");
 
-        let mut matcher = Matcher::default();
-        let _ = matcher.push(ExactMatchMethod::default());
-        let _ = matcher.push(ExactMatchUrl::default());
-        let _ = matcher.push(ExactMatchAllHeaders::default());
+        let enabled = Enabled::EXACT_URL | Enabled::EXACT_METHOD | Enabled::EXACT_ALL_HEADERS;
+        let matcher = Matcher::new(enabled, None, None);
         assert!(!matcher.matchers.is_empty());
 
         if let Ok(request) = request_builder.body(()) {
