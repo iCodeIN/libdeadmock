@@ -40,7 +40,6 @@ slog-async = "2"
 slog-term = "2"
 slog-try = "0"
 toml = "0"
-tokio-async-await = "0"
 tokio-codec = "0"
 tokio-io = "0"
 tomlenv = "0"
@@ -49,6 +48,10 @@ typed-headers = "0"
 [dependencies.slog]
 version = "2"
 features = ["max_level_trace", "release_max_level_trace"]
+
+[dependencies.tokio]
+version = "0"
+features = ["async-await-preview"]
 
 [dependencies.uuid]
 version = "0"
