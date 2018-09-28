@@ -34,6 +34,8 @@ pub use self::headers::ExactMatch as ExactMatchHeaders;
 pub use self::method::ExactMatch as ExactMatchMethod;
 #[cfg(all(feature = "exact_match", feature = "url"))]
 pub use self::url::ExactMatch as ExactMatchUrl;
+#[cfg(all(feature = "pattern_match", feature = "url"))]
+pub use self::url::PatternMatch as PatternMatchUrl;
 
 bitflags!{
     /// Enabled flags for request matching types
@@ -46,6 +48,8 @@ bitflags!{
         const EXACT_HEADERS = 0b0000_0100;
         /// Enable the exact matching on one header
         const EXACT_HEADER  = 0b0000_1000;
+        /// Enable the pattern matching on url
+        const PATTERN_URL   = 0b0001_0000;
     }
 }
 
@@ -131,6 +135,14 @@ impl Matcher {
         if enabled.contains(Enabled::EXACT_HEADERS) {
             let _ = matcher.push(
                 ExactMatchHeaders::default()
+                    .set_stdout(matcher.stdout.clone())
+                    .set_stderr(matcher.stderr.clone()),
+            );
+        }
+
+        if enabled.contains(Enabled::PATTERN_URL) {
+            let _ = matcher.push(
+                PatternMatchUrl::default()
                     .set_stdout(matcher.stdout.clone())
                     .set_stderr(matcher.stderr.clone()),
             );

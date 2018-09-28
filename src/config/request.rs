@@ -22,7 +22,7 @@ pub struct Request {
     #[get = "pub"]
     #[serde(skip_serializing_if = "Option::is_none")]
     url: Option<String>,
-    /// The url pattern to match (regex).
+    /// The url to pattern match (regex).
     #[get = "pub"]
     #[serde(skip_serializing_if = "Option::is_none")]
     url_pattern: Option<String>,
