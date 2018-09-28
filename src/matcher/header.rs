@@ -11,7 +11,8 @@ use crate::config;
 use crate::error::Error;
 use crate::matcher::{self, RequestMatch};
 use http::Request;
-use slog::Logger;
+use slog::{b, kv, log, record, record_static, trace, Logger};
+use slog_try::try_trace;
 use std::fmt;
 
 /// Exactly match all headers on a HTTP request.
@@ -48,18 +49,26 @@ impl RequestMatch for ExactMatch {
         request_config: &config::Request,
     ) -> Result<Option<bool>, Error> {
         if let Some(header) = request_config.header() {
+            try_trace!(self.stdout, "Checking header: '{}'", header);
             if let Ok((ref expected_name, ref expected_value)) = matcher::to_header_tuple(header) {
                 let expected = (expected_name, expected_value);
                 let results: Vec<bool> = request
                     .headers()
                     .iter()
                     .map(|actual| matcher::equal_headers(actual, expected))
+                    .filter(|v| *v)
                     .collect();
+                try_trace!(self.stdout, "Found {} header matches", results.len());
                 Ok(Some(results.len() == 1 && results[0]))
             } else {
+                try_trace!(
+                    self.stdout,
+                    "Unable to convert header config to http::Header"
+                );
                 Ok(None)
             }
         } else {
+            try_trace!(self.stdout, "Exact header match not configured!");
             Ok(None)
         }
     }

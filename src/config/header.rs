@@ -9,6 +9,7 @@
 //! `libdeadmock` header configuration
 use getset::{Getters, MutGetters, Setters};
 use serde_derive::{Deserialize, Serialize};
+use std::fmt;
 
 /// `libdeadmock` header configuration
 #[derive(
@@ -23,6 +24,12 @@ pub struct Header {
     #[get = "pub"]
     #[get_mut]
     value: String,
+}
+
+impl fmt::Display for Header {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.key, self.value)
+    }
 }
 
 #[cfg(test)]
