@@ -8,14 +8,17 @@
 
 //! HTTP request matching for the server.
 use bitflags::bitflags;
-use crate::config::{Mapping, Mappings, Request as RequestConfig};
+use crate::config::{self, Mapping, Mappings, Request as RequestConfig};
 use crate::error::Error;
 use crate::error::ErrorKind::MappingNotFound;
+use http::header::{HeaderName, HeaderValue};
 use http::Request;
 use slog::{b, kv, log, record, record_static, trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
 
+#[cfg(feature = "header")]
+crate mod header;
 #[cfg(feature = "headers")]
 crate mod headers;
 #[cfg(feature = "method")]
@@ -23,12 +26,10 @@ crate mod method;
 #[cfg(feature = "url")]
 crate mod url;
 
-#[cfg(all(
-    feature = "exact_match",
-    feature = "headers",
-    feature = "all_headers"
-))]
-pub use self::headers::ExactMatch as ExactMatchAllHeaders;
+#[cfg(all(feature = "exact_match", feature = "header"))]
+pub use self::header::ExactMatch as ExactMatchHeader;
+#[cfg(all(feature = "exact_match", feature = "headers"))]
+pub use self::headers::ExactMatch as ExactMatchHeaders;
 #[cfg(all(feature = "exact_match", feature = "method"))]
 pub use self::method::ExactMatch as ExactMatchMethod;
 #[cfg(all(feature = "exact_match", feature = "url"))]
@@ -38,14 +39,28 @@ bitflags!{
     /// Enabled flags for request matching types
     pub struct Enabled: u32 {
         /// Enable the exact matching on url
-        const EXACT_URL         = 0b0000_0001;
+        const EXACT_URL     = 0b0000_0001;
         /// Enable the exact matching on method
-        const EXACT_METHOD      = 0b0000_0010;
+        const EXACT_METHOD  = 0b0000_0010;
         /// Enable the exact matching on all headers
-        const EXACT_ALL_HEADERS = 0b0000_0100;
+        const EXACT_HEADERS = 0b0000_0100;
         /// Enable the exact matching on one header
-        const EXACT_ONE_HEADER  = 0b0000_1000;
+        const EXACT_HEADER  = 0b0000_1000;
     }
+}
+
+crate type HeaderTuple = (HeaderName, HeaderValue);
+crate type HeaderTupleRef<'a> = (&'a HeaderName, &'a HeaderValue);
+
+crate fn to_header_tuple(header: &config::Header) -> Result<HeaderTuple, failure::Error> {
+    Ok((
+        HeaderName::from_bytes(header.key().as_bytes())?,
+        HeaderValue::from_bytes(header.value().as_bytes())?,
+    ))
+}
+
+crate fn equal_headers(actual: HeaderTupleRef<'_>, expected: HeaderTupleRef<'_>) -> bool {
+    actual == expected
 }
 
 /// A request matcher
@@ -105,9 +120,17 @@ impl Matcher {
             );
         }
 
-        if enabled.contains(Enabled::EXACT_ALL_HEADERS) {
+        if enabled.contains(Enabled::EXACT_HEADER) {
             let _ = matcher.push(
-                ExactMatchAllHeaders::default()
+                ExactMatchHeader::default()
+                    .set_stdout(matcher.stdout.clone())
+                    .set_stderr(matcher.stderr.clone()),
+            );
+        }
+
+        if enabled.contains(Enabled::EXACT_HEADERS) {
+            let _ = matcher.push(
+                ExactMatchHeaders::default()
                     .set_stdout(matcher.stdout.clone())
                     .set_stderr(matcher.stderr.clone()),
             );
@@ -182,7 +205,32 @@ mod test {
         let _ = request_builder.uri("/json");
         let _ = request_builder.header("Content-Type", "application/json");
 
-        let enabled = Enabled::EXACT_URL | Enabled::EXACT_METHOD | Enabled::EXACT_ALL_HEADERS;
+        let enabled = Enabled::EXACT_URL | Enabled::EXACT_METHOD | Enabled::EXACT_HEADERS;
+        let matcher = Matcher::new(enabled, None, None);
+        assert!(!matcher.matchers.is_empty());
+
+        if let Ok(request) = request_builder.body(()) {
+            if let Ok(mapping) = matcher.get_match(&request, &mappings) {
+                assert_eq!(*mapping.priority(), 1);
+                assert!(mapping.response().body_file_name().is_some());
+            } else {
+                assert!(false, "Unable to find a matching mapping!");
+            }
+        } else {
+            assert!(false, "Unable to build the request to test!");
+        }
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn matching_one_header() {
+        let mappings = test_mappings().expect("Unable to setup mappings!");
+
+        let mut request_builder = Request::builder();
+        let _ = request_builder.uri("/json");
+        let _ = request_builder.header("Content-Type", "application/json");
+
+        let enabled = Enabled::EXACT_URL | Enabled::EXACT_METHOD | Enabled::EXACT_HEADER;
         let matcher = Matcher::new(enabled, None, None);
         assert!(!matcher.matchers.is_empty());
 

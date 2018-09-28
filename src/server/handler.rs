@@ -95,7 +95,8 @@ pub fn handle(handler: Handler, stream: TcpStream) {
     let task = tx
         .send_all(rx.and_then(move |req| {
             respond(handler.clone(), &req).map_err(|e| io::Error::new(ErrorKind::Other, e))
-        })).then(move |res| {
+        }))
+        .then(move |res| {
             if let Err(e) = res {
                 try_error!(response_stderr_1, "failed to process the request: {}", e);
             }
@@ -215,7 +216,8 @@ fn http_response(
                     Err(e) => buffer.push_str(&e.to_string()),
                 }
                 futures::future::ok(buffer)
-            }).map_err(|_| "Error processing upstream response".to_string())
+            })
+            .map_err(|_| "Error processing upstream response".to_string())
             .map(Response::new),
         )
     } else {

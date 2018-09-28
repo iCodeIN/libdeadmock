@@ -6,7 +6,7 @@
 // option. All files in the project carrying such notice may not be copied,
 // modified, or distributed except according to those terms.
 
-//! HTTP request headers matching
+//! HTTP request single header matching
 use crate::config;
 use crate::error::Error;
 use crate::matcher::{self, RequestMatch};
@@ -33,26 +33,11 @@ impl ExactMatch {
         self.stderr = stderr;
         self
     }
-
-    fn actual_has_match(&self, request: &Request<()>, header: &config::Header) -> Option<bool> {
-        if let Ok((ref expected_name, ref expected_value)) = matcher::to_header_tuple(header) {
-            let expected = (expected_name, expected_value);
-            Some(
-                request
-                    .headers()
-                    .iter()
-                    .map(|actual| matcher::equal_headers(actual, expected))
-                    .any(|x| x),
-            )
-        } else {
-            None
-        }
-    }
 }
 
 impl fmt::Display for ExactMatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Exact Match Headers")
+        write!(f, "Exact Match Header")
     }
 }
 
@@ -62,13 +47,18 @@ impl RequestMatch for ExactMatch {
         request: &Request<()>,
         request_config: &config::Request,
     ) -> Result<Option<bool>, Error> {
-        if let Some(headers) = request_config.headers() {
-            Ok(Some(
-                headers
+        if let Some(header) = request_config.header() {
+            if let Ok((ref expected_name, ref expected_value)) = matcher::to_header_tuple(header) {
+                let expected = (expected_name, expected_value);
+                let results: Vec<bool> = request
+                    .headers()
                     .iter()
-                    .filter_map(|header| self.actual_has_match(request, header))
-                    .all(|v| v),
-            ))
+                    .map(|actual| matcher::equal_headers(actual, expected))
+                    .collect();
+                Ok(Some(results.len() == 1 && results[0]))
+            } else {
+                Ok(None)
+            }
         } else {
             Ok(None)
         }
