@@ -78,7 +78,8 @@ crate mod test {
                     .long("mappings_path")
                     .takes_value(true)
                     .value_name("MAPPINGS_PATH"),
-            ).get_matches_from(args);
+            )
+            .get_matches_from(args);
 
         Ok(Mappings::try_from(&matches)?)
     }

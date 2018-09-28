@@ -14,7 +14,7 @@ use serde_derive::{Deserialize, Serialize};
 /// `libdeadmock` request matching configuration.
 #[derive(Clone, Debug, Default, Deserialize, Getters, Hash, Eq, PartialEq, Serialize)]
 pub struct Request {
-    /// The http request method to match.
+    /// The HTTP request method to match.
     #[get = "pub"]
     #[serde(skip_serializing_if = "Option::is_none")]
     method: Option<String>,
@@ -26,10 +26,14 @@ pub struct Request {
     #[get = "pub"]
     #[serde(skip_serializing_if = "Option::is_none")]
     url_pattern: Option<String>,
-    /// The http headers to match (exact).
+    /// The HTTP headers to match (exact).
     #[serde(skip_serializing_if = "Option::is_none")]
     #[get = "pub"]
     headers: Option<Vec<Header>>,
+    /// The HTTP header to match (exact).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[get = "pub"]
+    header: Option<Header>,
 }
 
 #[cfg(test)]
@@ -39,7 +43,7 @@ crate mod test {
 
     const EMPTY_REQUEST: &str = "{}";
     const PARTIAL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com"}"#;
-    const FULL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}]}"#;
+    const FULL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"}}"#;
     const BAD_REQUEST: &str = r#"{"method":}"#;
 
     crate fn partial_request() -> Request {
@@ -53,6 +57,7 @@ crate mod test {
         let mut request = partial_request();
         request.url_pattern = Some(".*jasonozias.*".to_string());
         request.headers = Some(vec![content_type_header()]);
+        request.header = Some(content_type_header());
         request
     }
 

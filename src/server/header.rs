@@ -89,7 +89,8 @@ crate fn socket_info(socket: &TcpStream, stdout: &Option<Logger>) {
             .keepalive()
             .unwrap_or(None)
             .map_or(0, |v| v.as_millis()),
-    ).unwrap_or(0);
+    )
+    .unwrap_or(0);
 
     try_trace!(
         stdout,

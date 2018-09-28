@@ -58,7 +58,7 @@ crate mod test {
 
     const EMPTY_MAPPING: &str = r#"{"priority":0,"request":{},"response":{}}"#;
     const PARTIAL_MAPPING: &str = r#"{"priority":10,"request":{"method":"GET","url":"http://a.url.com"},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"proxy_base_url":"http://cdcproxy.kroger.com"}}"#;
-    const FULL_MAPPING: &str = r#"{"priority":10,"request":{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}]},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}}"#;
+    const FULL_MAPPING: &str = r#"{"priority":10,"request":{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"}},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}}"#;
     const BAD_MAPPING_JSON: &str = r#"{"priority":"abc"}"#;
 
     crate fn partial_mapping() -> Mapping {

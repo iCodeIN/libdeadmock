@@ -172,19 +172,22 @@ mod test {
                     .long("proxy")
                     .requires("proxy-url")
                     .help("Use a proxy"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("proxy-url")
                     .long("proxy-url")
                     .takes_value(true)
                     .value_name("PROXY_URL")
                     .help("Your proxy url, if applicable"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("proxy-username")
                     .long("proxy-username")
                     .takes_value(true)
                     .value_name("PROXY_USER")
                     .help("Your proxy username, if applicable"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("proxy-password")
                     .long("proxy-password")
                     .takes_value(true)
@@ -203,7 +206,8 @@ mod test {
                     .short("p")
                     .long("proxy")
                     .help("Use a proxy"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("proxy-url")
                     .long("proxy-url")
                     .takes_value(true)

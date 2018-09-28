@@ -61,14 +61,10 @@ vergen = "2"
 
 [features]
 default = ["exact_match"]
-exact_match = ["url", "method", "headers", "all_headers", "one_header"]
+exact_match = ["url", "method", "header", "headers"]
 
 # Request Parts
 headers = []
 header = []
 url = []
 method = []
-
-# Match Types
-all_headers = []
-one_header = []

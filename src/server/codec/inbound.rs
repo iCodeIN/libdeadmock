@@ -55,7 +55,8 @@ impl Encoder for Http {
             item.status(),
             item.body().len(),
             Utc::now()
-        ).unwrap();
+        )
+        .unwrap();
 
         for (k, v) in item.headers() {
             dst.extend_from_slice(k.as_str().as_bytes());
