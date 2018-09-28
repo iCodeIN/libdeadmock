@@ -16,6 +16,7 @@ repository = "https://github.com/rustyhorde/libdeadmock"
 version = "0.1.2"
 
 [dependencies]
+bitflags = "1"
 bytes = "0"
 cached = "0"
 chrono = "0"
@@ -38,7 +39,6 @@ slog-async = "2"
 slog-term = "2"
 slog-try = "0"
 toml = "0"
-tokio-async-await = "0"
 tokio-codec = "0"
 tokio-io = "0"
 tomlenv = "0"
@@ -48,6 +48,10 @@ typed-headers = "0"
 version = "2"
 features = ["max_level_trace", "release_max_level_trace"]
 
+[dependencies.tokio]
+version = "0"
+features = ["async-await-preview"]
+
 [dependencies.uuid]
 version = "0"
 features = ["serde", "u128", "v4"]
@@ -55,18 +59,16 @@ features = ["serde", "u128", "v4"]
 [build-dependencies]
 vergen = "2"
 
-[patch.crates-io]
-hyper-proxy = { path = "../hyper-proxy" }
-
 [features]
 default = ["exact_match"]
-exact_match = ["url", "method", "header", "all_headers"]
+exact_match = ["url", "method", "headers", "all_headers", "one_header"]
 
 # Request Parts
+headers = []
 header = []
 url = []
 method = []
 
 # Match Types
 all_headers = []
-any_headers = []
+one_header = []
