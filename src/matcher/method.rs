@@ -11,7 +11,7 @@ use crate::config;
 use crate::error::Error;
 use crate::matcher::RequestMatch;
 use http::Request;
-use slog::{b, kv, log, record, record_static, trace, Logger};
+use slog::{trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
 

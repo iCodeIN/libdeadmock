@@ -13,7 +13,7 @@ use crate::error::Error;
 use crate::error::ErrorKind::MappingNotFound;
 use http::header::{HeaderName, HeaderValue};
 use http::Request;
-use slog::{b, kv, log, record, record_static, trace, Logger};
+use slog::{trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
 

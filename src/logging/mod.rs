@@ -11,7 +11,7 @@ use clap::ArgMatches;
 use crate::config::Runtime;
 use failure::Error;
 use getset::Getters;
-use slog::{kv, o, Drain, Level, Logger};
+use slog::{o, Drain, Level, Logger};
 use slog_async::Async;
 use slog_term::{CompactFormat, TermDecorator};
 use std::convert::TryFrom;

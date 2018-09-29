@@ -22,7 +22,7 @@ use hyper_proxy::{Intercept, Proxy, ProxyConnector};
 use hyper_tls::HttpsConnector;
 use lazy_static::lazy_static;
 use slog::Logger;
-use slog::{b, error, info, kv, log, record, record_static, trace};
+use slog::{error, info, trace};
 use slog_try::{try_error, try_info, try_trace};
 use std::fs::File;
 use std::io::{self, BufReader, ErrorKind, Read};

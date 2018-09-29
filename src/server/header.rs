@@ -9,8 +9,8 @@
 //! `libdeadmock` utilities
 use colored::{Color, Colorize};
 use rand::Rng;
+use slog::trace;
 use slog::Logger;
-use slog::{b, kv, log, record, record_static, trace};
 use slog_try::try_trace;
 use std::convert::TryFrom;
 use tokio::net::TcpStream;

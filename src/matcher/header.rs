@@ -14,7 +14,7 @@ use crate::matcher::{self, RequestMatch};
 use http::Request;
 use lazy_static::lazy_static;
 use regex::Regex;
-use slog::{b, kv, log, record, record_static, trace, Logger};
+use slog::{trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
 
@@ -123,11 +123,9 @@ impl RequestMatch for PatternMatch {
                 .headers()
                 .iter()
                 .map(|(key, value)| (key.as_str(), value.to_str()))
-                .filter_map(|(key, result)| {
-                    match result {
-                        Ok(value) => Some((key, value)),
-                        Err(_) => None
-                    }
+                .filter_map(|(key, result)| match result {
+                    Ok(value) => Some((key, value)),
+                    Err(_) => None,
                 })
                 .collect();
             Ok(None)

@@ -14,7 +14,7 @@ use crate::matcher::RequestMatch;
 use http::Request;
 use lazy_static::lazy_static;
 use regex::Regex;
-use slog::{b, kv, log, record, record_static, trace, Logger};
+use slog::{trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
 
