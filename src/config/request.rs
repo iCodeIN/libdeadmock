@@ -6,12 +6,12 @@
 // option. All files in the project carrying such notice may not be copied,
 // modified, or distributed except according to those terms.
 
-//! `libdeadmock` request matching configuration
-use crate::config::Header;
+//! HTTP request matching configuration
+use crate::config::{Header, HeaderPattern};
 use getset::Getters;
 use serde_derive::{Deserialize, Serialize};
 
-/// `libdeadmock` request matching configuration.
+/// HTTP request matching configuration.
 #[derive(Clone, Debug, Default, Deserialize, Getters, Hash, Eq, PartialEq, Serialize)]
 pub struct Request {
     /// The HTTP request method to match.
@@ -34,16 +34,20 @@ pub struct Request {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[get = "pub"]
     header: Option<Header>,
+    /// The HTTP header to match (regex).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[get = "pub"]
+    header_pattern: Option<HeaderPattern>,
 }
 
 #[cfg(test)]
 crate mod test {
     use super::Request;
-    use crate::config::header::test::content_type_header;
+    use crate::config::header::test::{content_type_header, content_type_header_pattern};
 
     const EMPTY_REQUEST: &str = "{}";
     const PARTIAL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com"}"#;
-    const FULL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"}}"#;
+    const FULL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"Left":"Content-Type"},"value":{"Right":"^application/.*"}}}"#;
     const BAD_REQUEST: &str = r#"{"method":}"#;
 
     crate fn partial_request() -> Request {
@@ -58,6 +62,7 @@ crate mod test {
         request.url_pattern = Some(".*jasonozias.*".to_string());
         request.headers = Some(vec![content_type_header()]);
         request.header = Some(content_type_header());
+        request.header_pattern = Some(content_type_header_pattern());
         request
     }
 

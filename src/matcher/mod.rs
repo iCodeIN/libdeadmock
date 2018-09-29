@@ -28,6 +28,8 @@ crate mod url;
 
 #[cfg(all(feature = "exact_match", feature = "header"))]
 pub use self::header::ExactMatch as ExactMatchHeader;
+#[cfg(all(feature = "pattern_match", feature = "header"))]
+pub use self::header::PatternMatch as PatternMatchHeader;
 #[cfg(all(feature = "exact_match", feature = "headers"))]
 pub use self::headers::ExactMatch as ExactMatchHeaders;
 #[cfg(all(feature = "exact_match", feature = "method"))]
@@ -41,15 +43,17 @@ bitflags!{
     /// Enabled flags for request matching types
     pub struct Enabled: u32 {
         /// Enable the exact matching on url
-        const EXACT_URL     = 0b0000_0001;
+        const EXACT_URL      = 0b0000_0001;
         /// Enable the exact matching on method
-        const EXACT_METHOD  = 0b0000_0010;
+        const EXACT_METHOD   = 0b0000_0010;
         /// Enable the exact matching on all headers
-        const EXACT_HEADERS = 0b0000_0100;
+        const EXACT_HEADERS  = 0b0000_0100;
         /// Enable the exact matching on one header
-        const EXACT_HEADER  = 0b0000_1000;
+        const EXACT_HEADER   = 0b0000_1000;
         /// Enable the pattern matching on url
-        const PATTERN_URL   = 0b0001_0000;
+        const PATTERN_URL    = 0b0001_0000;
+        /// Enable the pattern matching on one header
+        const PATTERN_HEADER = 0b1000_0000;
     }
 }
 

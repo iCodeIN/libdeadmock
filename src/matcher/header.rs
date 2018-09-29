@@ -7,10 +7,13 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request single header matching
-use crate::config;
+use cached::{cached_key_result, UnboundCache};
+use crate::config::{self, Request as RequestConfig};
 use crate::error::Error;
 use crate::matcher::{self, RequestMatch};
 use http::Request;
+use lazy_static::lazy_static;
+use regex::Regex;
 use slog::{b, kv, log, record, record_static, trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
@@ -71,5 +74,71 @@ impl RequestMatch for ExactMatch {
             try_trace!(self.stdout, "Exact header match not configured!");
             Ok(None)
         }
+    }
+}
+
+/// Pattern match a header
+#[derive(Clone, Debug, Default)]
+pub struct PatternMatch {
+    stdout: Option<Logger>,
+    stderr: Option<Logger>,
+}
+
+impl PatternMatch {
+    /// Add a stdout logger
+    pub fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
+        self.stdout = stdout;
+        self
+    }
+
+    /// Add a stderr logger
+    pub fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
+        self.stderr = stderr;
+        self
+    }
+}
+
+cached_key_result!{
+    REGEX: UnboundCache<String, Regex> = UnboundCache::new();
+    Key = { actual.to_string() };
+    fn generate_regex(actual: &str, header_pattern: &str) -> Result<Regex, String> = {
+        let regex_result = Regex::new(header_pattern);
+
+        match regex_result {
+            Ok(regex) => Ok(regex),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+}
+
+impl RequestMatch for PatternMatch {
+    fn is_match(
+        &self,
+        request: &Request<()>,
+        request_config: &RequestConfig,
+    ) -> Result<Option<bool>, Error> {
+        if let Some(header) = request_config.header() {
+            try_trace!(self.stdout, "Checking header: '{}'", header);
+            let _headers_str: Vec<(&str, &str)> = request
+                .headers()
+                .iter()
+                .map(|(key, value)| (key.as_str(), value.to_str()))
+                .filter_map(|(key, result)| {
+                    match result {
+                        Ok(value) => Some((key, value)),
+                        Err(_) => None
+                    }
+                })
+                .collect();
+            Ok(None)
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl fmt::Display for PatternMatch {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Pattern Match On Header")
     }
 }

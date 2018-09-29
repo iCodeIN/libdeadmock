@@ -7,10 +7,13 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request URL matching
+use cached::{cached_key_result, UnboundCache};
 use crate::config::Request as RequestConfig;
 use crate::error::Error;
 use crate::matcher::RequestMatch;
 use http::Request;
+use lazy_static::lazy_static;
+use regex::Regex;
 use slog::{b, kv, log, record, record_static, trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
@@ -82,10 +85,6 @@ impl PatternMatch {
         self
     }
 }
-
-use cached::{cached_key_result, UnboundCache};
-use lazy_static::lazy_static;
-use regex::Regex;
 
 cached_key_result!{
     REGEX: UnboundCache<String, Regex> = UnboundCache::new();

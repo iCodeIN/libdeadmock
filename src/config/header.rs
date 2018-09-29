@@ -6,12 +6,13 @@
 // option. All files in the project carrying such notice may not be copied,
 // modified, or distributed except according to those terms.
 
-//! `libdeadmock` header configuration
+//! HTTP header configuration
+use either::Either;
 use getset::{Getters, MutGetters, Setters};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 
-/// `libdeadmock` header configuration
+/// HTTP header configuration
 #[derive(
     Clone, Debug, Default, Deserialize, Eq, Getters, Hash, MutGetters, PartialEq, Serialize, Setters,
 )]
@@ -32,13 +33,38 @@ impl fmt::Display for Header {
     }
 }
 
+/// HTTP header pattern configuration
+#[derive(
+    Clone, Debug, Deserialize, Eq, Getters, Hash, MutGetters, PartialEq, Serialize, Setters,
+)]
+pub struct HeaderPattern {
+    /// Either the header key, i.e. 'Content-Type' or a header key pattern, i.e. '^X-.*'
+    #[get = "pub"]
+    #[get_mut]
+    key: Either<String, String>,
+    /// Either the header value, i.e. 'application/json' or a header key pattern, i.e. '^application/.*'
+    #[get = "pub"]
+    #[get_mut]
+    value: Either<String, String>,
+}
+
 #[cfg(test)]
 crate mod test {
-    use super::Header;
+    use super::{Header, HeaderPattern};
+    use either::{Left, Right};
 
     const EMPTY_HEADER: &str = r#"{"key":"","value":""}"#;
     const CONTENT_TYPE_JSON: &str = r#"{"key":"Content-Type","value":"application/json"}"#;
+    const CONTENT_TYPE_EITHER_JSON: &str =
+        r#"{"key":{"Left":"Content-Type"},"value":{"Right":"^application/.*"}}"#;
     const BAD_HEADER_JSON: &str = r#"{"key":"blah"}"#;
+
+    crate fn content_type_header_pattern() -> HeaderPattern {
+        HeaderPattern {
+            key: Left("Content-Type".to_string()),
+            value: Right("^application/.*".to_string()),
+        }
+    }
 
     crate fn content_type_header() -> Header {
         Header {
@@ -73,6 +99,15 @@ crate mod test {
     }
 
     #[test]
+    fn serialize_header_pattern() {
+        if let Ok(serialized) = serde_json::to_string(&content_type_header_pattern()) {
+            assert_eq!(serialized, CONTENT_TYPE_EITHER_JSON);
+        } else {
+            assert!(false, "Serialization not expected to fail!");
+        }
+    }
+
+    #[test]
     fn deserialize_empty_header() {
         if let Ok(deserialized) = serde_json::from_str::<Header>(EMPTY_HEADER) {
             assert_eq!(deserialized, Header::default());
@@ -88,6 +123,18 @@ crate mod test {
     fn deserialize_header() {
         if let Ok(deserialized) = serde_json::from_str::<Header>(CONTENT_TYPE_JSON) {
             assert_eq!(deserialized, content_type_header());
+        } else {
+            assert!(
+                false,
+                "Expected deserialization of string into Header to succeed!"
+            );
+        }
+    }
+
+    #[test]
+    fn deserialize_header_pattern() {
+        if let Ok(deserialized) = serde_json::from_str::<HeaderPattern>(CONTENT_TYPE_EITHER_JSON) {
+            assert_eq!(deserialized, content_type_header_pattern());
         } else {
             assert!(
                 false,

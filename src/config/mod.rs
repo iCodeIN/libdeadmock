@@ -15,7 +15,7 @@ crate mod request;
 crate mod response;
 crate mod runtime;
 
-pub use self::header::Header;
+pub use self::header::{Header, HeaderPattern};
 pub use self::mapping::Mapping;
 pub use self::mappings::Mappings;
 pub use self::proxy::Proxy;
