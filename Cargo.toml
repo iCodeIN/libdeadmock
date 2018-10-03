@@ -62,7 +62,7 @@ version = "0"
 features = ["serde", "u128", "v4"]
 
 [build-dependencies]
-vergen = "2"
+vergen = "3"
 
 [features]
 default = ["exact_match", "pattern_match"]
