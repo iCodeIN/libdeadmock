@@ -48,6 +48,12 @@ pub struct HeaderPattern {
     value: Either<String, String>,
 }
 
+impl fmt::Display for HeaderPattern {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.key, self.value)
+    }
+}
+
 #[cfg(test)]
 crate mod test {
     use super::{Header, HeaderPattern};

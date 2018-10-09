@@ -64,10 +64,29 @@ crate mod test {
 [request]
 method = "GET"
 url = "http://a.url.com"
+url_pattern = ".*jasonozias.*"
+
+[[request.headers]]
+key = "Content-Type"
+value = "application/json"
+
+[request.header]
+key = "Content-Type"
+value = "application/json"
+[request.header_pattern.key]
+left = "Content-Type"
+
+[request.header_pattern.value]
+right = "^application/.*"
 
 [response]
+body_file_name = "test.json"
 proxy_base_url = "http://cdcproxy.kroger.com"
 status = 200
+
+[[response.additional_proxy_request_headers]]
+key = "Authorization"
+value = "Basic abcdef123"
 
 [[response.headers]]
 key = "Content-Type"
@@ -145,7 +164,7 @@ value = "application/json"
 
     #[test]
     fn serialize_full_mapping_toml() {
-        match toml::Value::try_from(&partial_mapping()) {
+        match toml::Value::try_from(&full_mapping()) {
             Ok(serialized) => assert_eq!(format!("{}", serialized), FULL_MAPPING_TOML),
             Err(e) => assert!(false, e.to_string()),
         }
@@ -187,17 +206,17 @@ value = "application/json"
         }
     }
 
-    // #[test]
-    // fn deserialize_full_mapping_toml() {
-    //     if let Ok(deserialized) = toml::from_str::<Mapping>(FULL_MAPPING_TOML) {
-    //         assert_eq!(deserialized, full_mapping());
-    //     } else {
-    //         assert!(
-    //             false,
-    //             "Expected deserialization of string into Mapping to succeed!"
-    //         );
-    //     }
-    // }
+    #[test]
+    fn deserialize_full_mapping_toml() {
+        if let Ok(deserialized) = toml::from_str::<Mapping>(FULL_MAPPING_TOML) {
+            assert_eq!(deserialized, full_mapping());
+        } else {
+            assert!(
+                false,
+                "Expected deserialization of string into Mapping to succeed!"
+            );
+        }
+    }
 
     #[test]
     fn deserialize_bad_mapping() {

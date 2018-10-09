@@ -152,6 +152,14 @@ impl Matcher {
             );
         }
 
+        if enabled.contains(Enabled::PATTERN_HEADER) {
+            let _ = matcher.push(
+                PatternMatchHeader::default()
+                    .set_stdout(matcher.stdout.clone())
+                    .set_stderr(matcher.stderr.clone()),
+            );
+        }
+
         matcher
     }
 

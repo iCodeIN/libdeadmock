@@ -117,8 +117,8 @@ impl RequestMatch for PatternMatch {
         request: &Request<()>,
         request_config: &RequestConfig,
     ) -> Result<Option<bool>, Error> {
-        if let Some(header) = request_config.header() {
-            try_trace!(self.stdout, "Checking header: '{}'", header);
+        if let Some(header_pattern) = request_config.header_pattern() {
+            try_trace!(self.stdout, "Checking header pattern: '{}'", header_pattern);
             let _headers_str: Vec<(&str, &str)> = request
                 .headers()
                 .iter()
