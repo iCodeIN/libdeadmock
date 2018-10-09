@@ -45,9 +45,9 @@ tokio-io = "0"
 tomlenv = "0"
 typed-headers = "0"
 
-[dependencies.either]
-version = "1"
-features = ["serde"]
+[dependencies.libeither]
+version = "0"
+features = ["serde", "unstable"]
 
 [dependencies.slog]
 version = "2"

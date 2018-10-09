@@ -7,8 +7,8 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP header configuration
-use either::Either;
 use getset::{Getters, MutGetters, Setters};
+use libeither::Either;
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 
@@ -51,18 +51,26 @@ pub struct HeaderPattern {
 #[cfg(test)]
 crate mod test {
     use super::{Header, HeaderPattern};
-    use either::{Left, Right};
+    use libeither::Either;
 
     const EMPTY_HEADER: &str = r#"{"key":"","value":""}"#;
     const CONTENT_TYPE_JSON: &str = r#"{"key":"Content-Type","value":"application/json"}"#;
-    const CONTENT_TYPE_EITHER_JSON: &str =
-        r#"{"key":{"Left":"Content-Type"},"value":{"Right":"^application/.*"}}"#;
+    const CONTENT_TYPE_TOML: &str = r#"key = "Content-Type"
+value = "application/json"
+"#;
+    const CONTENT_TYPE_EITHER_JSON: &str = r#"{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}"#;
+    const CONTENT_TYPE_EITHER_TOML: &str = r#"[key]
+left = "Content-Type"
+
+[value]
+right = "^application/.*"
+"#;
     const BAD_HEADER_JSON: &str = r#"{"key":"blah"}"#;
 
     crate fn content_type_header_pattern() -> HeaderPattern {
         HeaderPattern {
-            key: Left("Content-Type".to_string()),
-            value: Right("^application/.*".to_string()),
+            key: Either::new_left("Content-Type".to_string()),
+            value: Either::new_right("^application/.*".to_string()),
         }
     }
 
@@ -90,9 +98,18 @@ crate mod test {
     }
 
     #[test]
-    fn serialize_header() {
+    fn serialize_header_json() {
         if let Ok(serialized) = serde_json::to_string(&content_type_header()) {
             assert_eq!(serialized, CONTENT_TYPE_JSON);
+        } else {
+            assert!(false, "Serialization not expected to fail!");
+        }
+    }
+
+    #[test]
+    fn serialize_header_toml() {
+        if let Ok(serialized) = toml::to_string(&content_type_header()) {
+            assert_eq!(serialized, CONTENT_TYPE_TOML);
         } else {
             assert!(false, "Serialization not expected to fail!");
         }
@@ -102,6 +119,15 @@ crate mod test {
     fn serialize_header_pattern() {
         if let Ok(serialized) = serde_json::to_string(&content_type_header_pattern()) {
             assert_eq!(serialized, CONTENT_TYPE_EITHER_JSON);
+        } else {
+            assert!(false, "Serialization not expected to fail!");
+        }
+    }
+
+    #[test]
+    fn serialize_header_pattern_toml() {
+        if let Ok(serialized) = toml::to_string(&content_type_header_pattern()) {
+            assert_eq!(serialized, CONTENT_TYPE_EITHER_TOML);
         } else {
             assert!(false, "Serialization not expected to fail!");
         }
@@ -120,7 +146,7 @@ crate mod test {
     }
 
     #[test]
-    fn deserialize_header() {
+    fn deserialize_header_json() {
         if let Ok(deserialized) = serde_json::from_str::<Header>(CONTENT_TYPE_JSON) {
             assert_eq!(deserialized, content_type_header());
         } else {
@@ -132,8 +158,20 @@ crate mod test {
     }
 
     #[test]
-    fn deserialize_header_pattern() {
+    fn deserialize_header_pattern_json() {
         if let Ok(deserialized) = serde_json::from_str::<HeaderPattern>(CONTENT_TYPE_EITHER_JSON) {
+            assert_eq!(deserialized, content_type_header_pattern());
+        } else {
+            assert!(
+                false,
+                "Expected deserialization of string into Header to succeed!"
+            );
+        }
+    }
+
+    #[test]
+    fn deserialize_header_pattern_toml() {
+        if let Ok(deserialized) = toml::from_str::<HeaderPattern>(CONTENT_TYPE_EITHER_TOML) {
             assert_eq!(deserialized, content_type_header_pattern());
         } else {
             assert!(

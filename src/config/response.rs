@@ -19,9 +19,10 @@ pub struct Response {
     #[get = "pub"]
     status: Option<u16>,
     /// The http headers to send on the response.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     #[get = "pub"]
-    headers: Option<Vec<Header>>,
+    headers: Vec<Header>,
     /// The file to use as the http response body.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[get = "pub"]
@@ -31,9 +32,10 @@ pub struct Response {
     #[get = "pub"]
     proxy_base_url: Option<String>,
     /// Additional headers to send along with the request to the proxy.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     #[get = "pub"]
-    additional_proxy_request_headers: Option<Vec<Header>>,
+    additional_proxy_request_headers: Vec<Header>,
 }
 
 #[cfg(test)]
@@ -43,21 +45,33 @@ crate mod test {
 
     const EMPTY_RESPONSE: &str = "{}";
     const PARTIAL_RESPONSE: &str = r#"{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"proxy_base_url":"http://cdcproxy.kroger.com"}"#;
-    const FULL_RESPONSE: &str = r#"{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}"#;
+    const FULL_RESPONSE_JSON: &str = r#"{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}"#;
+    const FULL_RESPONSE_TOML: &str = r#"body_file_name = "test.json"
+proxy_base_url = "http://cdcproxy.kroger.com"
+status = 200
+
+[[additional_proxy_request_headers]]
+key = "Authorization"
+value = "Basic abcdef123"
+
+[[headers]]
+key = "Content-Type"
+value = "application/json"
+"#;
     const BAD_RESPONSE: &str = r#"{"status":"abc"}"#;
 
     crate fn partial_response() -> Response {
         let mut response = Response::default();
         response.status = Some(200);
         response.proxy_base_url = Some("http://cdcproxy.kroger.com".to_string());
-        response.headers = Some(vec![content_type_header()]);
+        response.headers = vec![content_type_header()];
         response
     }
 
     crate fn full_response() -> Response {
         let mut response = partial_response();
         response.body_file_name = Some("test.json".to_string());
-        response.additional_proxy_request_headers = Some(vec![additional_proxy_request_headers()]);
+        response.additional_proxy_request_headers = vec![additional_proxy_request_headers()];
         response
     }
 
@@ -86,23 +100,27 @@ crate mod test {
     }
 
     #[test]
-    fn serialize_full_response() {
+    fn serialize_full_response_json() {
         if let Ok(req_str) = serde_json::to_string(&full_response()) {
-            assert_eq!(req_str, FULL_RESPONSE);
+            assert_eq!(req_str, FULL_RESPONSE_JSON);
         } else {
             assert!(false, "Expected serialization of full response to succeed!");
         }
     }
 
     #[test]
+    fn serialize_full_response_toml() {
+        match toml::Value::try_from(&full_response()) {
+            Ok(toml_value) => assert_eq!(format!("{}", toml_value), FULL_RESPONSE_TOML),
+            Err(e) => assert!(false, e.to_string()),
+        }
+    }
+
+    #[test]
     fn deserialize_empty_response() {
-        if let Ok(deserialized) = serde_json::from_str::<Response>(EMPTY_RESPONSE) {
-            assert_eq!(deserialized, Response::default());
-        } else {
-            assert!(
-                false,
-                "Expected deserialization of string into Response to succeed!"
-            );
+        match serde_json::from_str::<Response>(EMPTY_RESPONSE) {
+            Ok(deserialized) => assert_eq!(deserialized, Response::default()),
+            Err(e) => assert!(false, e.to_string()),
         }
     }
 
@@ -119,8 +137,20 @@ crate mod test {
     }
 
     #[test]
-    fn deserialize_full_response() {
-        if let Ok(deserialized) = serde_json::from_str::<Response>(FULL_RESPONSE) {
+    fn deserialize_full_response_json() {
+        if let Ok(deserialized) = serde_json::from_str::<Response>(FULL_RESPONSE_JSON) {
+            assert_eq!(deserialized, full_response());
+        } else {
+            assert!(
+                false,
+                "Expected deserialization of string into Response to succeed!"
+            );
+        }
+    }
+
+    #[test]
+    fn deserialize_full_response_toml() {
+        if let Ok(deserialized) = toml::from_str::<Response>(FULL_RESPONSE_TOML) {
             assert_eq!(deserialized, full_response());
         } else {
             assert!(

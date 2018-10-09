@@ -62,15 +62,12 @@ impl RequestMatch for ExactMatch {
         request: &Request<()>,
         request_config: &config::Request,
     ) -> Result<Option<bool>, Error> {
-        if let Some(headers) = request_config.headers() {
-            Ok(Some(
-                headers
-                    .iter()
-                    .filter_map(|header| self.actual_has_match(request, header))
-                    .all(|v| v),
-            ))
-        } else {
-            Ok(None)
-        }
+        Ok(Some(
+            request_config
+                .headers()
+                .iter()
+                .filter_map(|header| self.actual_has_match(request, header))
+                .all(|v| v),
+        ))
     }
 }

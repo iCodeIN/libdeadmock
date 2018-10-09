@@ -27,9 +27,10 @@ pub struct Request {
     #[serde(skip_serializing_if = "Option::is_none")]
     url_pattern: Option<String>,
     /// The HTTP headers to match (exact).
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     #[get = "pub"]
-    headers: Option<Vec<Header>>,
+    headers: Vec<Header>,
     /// The HTTP header to match (exact).
     #[serde(skip_serializing_if = "Option::is_none")]
     #[get = "pub"]
@@ -47,7 +48,24 @@ crate mod test {
 
     const EMPTY_REQUEST: &str = "{}";
     const PARTIAL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com"}"#;
-    const FULL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"Left":"Content-Type"},"value":{"Right":"^application/.*"}}}"#;
+    const FULL_REQUEST_JSON: &str = r#"{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}}"#;
+    const FULL_REQUEST_TOML: &str = r#"method = "GET"
+url = "http://a.url.com"
+url_pattern = ".*jasonozias.*"
+
+[[headers]]
+key = "Content-Type"
+value = "application/json"
+
+[header]
+key = "Content-Type"
+value = "application/json"
+[header_pattern.key]
+left = "Content-Type"
+
+[header_pattern.value]
+right = "^application/.*"
+"#;
     const BAD_REQUEST: &str = r#"{"method":}"#;
 
     crate fn partial_request() -> Request {
@@ -60,7 +78,7 @@ crate mod test {
     crate fn full_request() -> Request {
         let mut request = partial_request();
         request.url_pattern = Some(".*jasonozias.*".to_string());
-        request.headers = Some(vec![content_type_header()]);
+        request.headers = vec![content_type_header()];
         request.header = Some(content_type_header());
         request.header_pattern = Some(content_type_header_pattern());
         request
@@ -88,9 +106,18 @@ crate mod test {
     }
 
     #[test]
-    fn serialize_request() {
+    fn serialize_request_json() {
         if let Ok(req_str) = serde_json::to_string(&full_request()) {
-            assert_eq!(req_str, FULL_REQUEST);
+            assert_eq!(req_str, FULL_REQUEST_JSON);
+        } else {
+            assert!(false, "Expected serialization of full request to succeed!");
+        }
+    }
+
+    #[test]
+    fn serialize_request_toml() {
+        if let Ok(req_str) = toml::to_string(&full_request()) {
+            assert_eq!(req_str, FULL_REQUEST_TOML);
         } else {
             assert!(false, "Expected serialization of full request to succeed!");
         }
@@ -121,8 +148,20 @@ crate mod test {
     }
 
     #[test]
-    fn deserialize_request() {
-        if let Ok(deserialized) = serde_json::from_str::<Request>(FULL_REQUEST) {
+    fn deserialize_request_json() {
+        if let Ok(deserialized) = serde_json::from_str::<Request>(FULL_REQUEST_JSON) {
+            assert_eq!(deserialized, full_request());
+        } else {
+            assert!(
+                false,
+                "Expected deserialization of string into Request to succeed!"
+            );
+        }
+    }
+
+    #[test]
+    fn deserialize_request_toml() {
+        if let Ok(deserialized) = toml::from_str::<Request>(FULL_REQUEST_TOML) {
             assert_eq!(deserialized, full_request());
         } else {
             assert!(

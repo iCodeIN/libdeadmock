@@ -222,10 +222,8 @@ fn http_response(
         )
     } else {
         let mut response_builder = Response::builder();
-        if let Some(headers) = response_config.headers() {
-            for header in headers {
-                let _ = response_builder.header(&header.key()[..], &header.value()[..]);
-            }
+        for header in response_config.headers() {
+            let _ = response_builder.header(&header.key()[..], &header.value()[..]);
         }
 
         if let Some(status) = response_config.status() {
@@ -260,7 +258,7 @@ async fn run_request<C>(
     url: String,
     stdout: Option<Logger>,
     stderr: Option<Logger>,
-    headers: Option<Vec<config::Header>>,
+    headers: Vec<config::Header>,
 ) where
     C: hyper::client::connect::Connect + Sync + 'static,
 {
@@ -268,11 +266,10 @@ async fn run_request<C>(
         try_trace!(stdout, "Making request to {}", url);
         let mut request_builder = HyperRequest::get(url);
 
-        if let Some(headers) = headers {
-            for header in headers {
-                let _ = request_builder.header(&header.key()[..], &header.value()[..]);
-            }
+        for header in headers {
+            let _ = request_builder.header(&header.key()[..], &header.value()[..]);
         }
+
         let body = request_builder
             .body(hyper::Body::empty())
             .expect("Unable to create upstream request");
