@@ -117,7 +117,13 @@ fn respond(handler: Handler, request: &Request<()>) -> FutResponse {
     );
 
     if let Ok(mapping) = matcher.get_match(&request, &handler.static_mappings) {
-        try_trace!(handler.stdout, "{}", mapping);
+        try_trace!(handler.stdout, "");
+        try_trace!(
+            handler.stdout,
+            "{:#^1$}",
+            format!(" Matched '{}' ", mapping.name()),
+            80
+        );
         http_response(handler, &request, mapping.response())
     } else {
         let dynamic_mappings = handler.dynamic_mappings.clone();
@@ -127,7 +133,13 @@ fn respond(handler: Handler, request: &Request<()>) -> FutResponse {
         };
 
         if let Ok(mapping) = matcher.get_match(&request, &locked_dynamic_mappings) {
-            try_trace!(handler.stdout, "Matched: {}", mapping.name());
+            try_trace!(handler.stdout, "");
+            try_trace!(
+                handler.stdout,
+                "{:#^1$}",
+                format!(" Matched '{}' ", mapping.name()),
+                80
+            );
             http_response(handler, &request, mapping.response())
         } else {
             try_error!(handler.stderr, "No mapping found");

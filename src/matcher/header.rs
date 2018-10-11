@@ -69,7 +69,7 @@ impl RequestMatch for ExactMatch {
                     self.stdout,
                     "Unable to convert header config to http::Header"
                 );
-                Ok(None)
+                Ok(Some(false))
             }
         } else {
             try_trace!(self.stdout, "Exact header match not configured!");
@@ -165,7 +165,7 @@ impl RequestMatch for PatternMatch {
             if matched_header.len() == 1 && matched_header[0] {
                 Ok(Some(true))
             } else {
-                Ok(None)
+                Ok(Some(false))
             }
         } else {
             Ok(None)

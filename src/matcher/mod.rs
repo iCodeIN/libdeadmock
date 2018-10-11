@@ -74,6 +74,9 @@ crate fn equal_headers(actual: HeaderTupleRef<'_>, expected: HeaderTupleRef<'_>)
 /// A request matcher
 pub trait RequestMatch: fmt::Debug + fmt::Display {
     /// Does the incoming request match the request configuration from a mapping.
+    ///
+    /// If the matcher has configuration, then `is_match` must return `Some(bool)`.
+    /// Otherwise, `is_match` must return `None`
     fn is_match(
         &self,
         request: &Request<()>,
@@ -188,9 +191,12 @@ impl Matcher {
             .iter()
             .inspect(|(_uuid, mapping)| {
                 try_trace!(self.stdout, "");
-                try_trace!(self.stdout, "##########");
-                try_trace!(self.stdout, "Checking mapping '{}'", mapping.name());
-                try_trace!(self.stdout, "##########");
+                try_trace!(
+                    self.stdout,
+                    "{:#^1$}",
+                    format!(" Checking '{}' ", mapping.name()),
+                    80
+                );
             })
             .filter_map(|(_uuid, mapping)| self.is_match(request, mapping))
             .min()
@@ -209,6 +215,10 @@ impl Matcher {
             .filter_map(|x| x)
             .collect::<Vec<bool>>();
 
+        let all_true = matches.iter().all(|x| *x);
+
+        println!("Matches: {:?}", matches);
+        println!("All: {}", all_true);
         // Is the remaining list non-empty and all true?
         if !matches.is_empty() && matches.iter().all(|x| *x) {
             Some(mapping.clone())

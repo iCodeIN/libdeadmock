@@ -111,7 +111,7 @@ impl RequestMatch for PatternMatch {
             if let Ok(regex) = generate_regex(path, url_pattern) {
                 Ok(Some(regex.is_match(path)))
             } else {
-                Ok(None)
+                Ok(Some(false))
             }
         } else {
             Ok(None)
