@@ -186,7 +186,12 @@ impl Matcher {
         mappings
             .inner()
             .iter()
-            .inspect(|(_uuid, mapping)| try_trace!(self.stdout, "Checking mapping '{}'", mapping))
+            .inspect(|(_uuid, mapping)| {
+                try_trace!(self.stdout, "");
+                try_trace!(self.stdout, "##########");
+                try_trace!(self.stdout, "Checking mapping '{}'", mapping.name());
+                try_trace!(self.stdout, "##########");
+            })
             .filter_map(|(_uuid, mapping)| self.is_match(request, mapping))
             .min()
             .ok_or_else(|| MappingNotFound.into())
@@ -261,6 +266,32 @@ mod test {
         if let Ok(request) = request_builder.body(()) {
             if let Ok(mapping) = matcher.get_match(&request, &mappings) {
                 assert_eq!(*mapping.priority(), 1);
+                assert!(mapping.response().body_file_name().is_some());
+            } else {
+                assert!(false, "Unable to find a matching mapping!");
+            }
+        } else {
+            assert!(false, "Unable to build the request to test!");
+        }
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn match_header_pattern() {
+        let mappings = test_mappings().expect("Unable to setup mappings!");
+
+        let mut request_builder = Request::builder();
+        let _ = request_builder.uri("/json");
+        let _ = request_builder.header("Content-Type", "application/json");
+        let _ = request_builder.header("X-Pattern-Match", "yoda-darth");
+
+        let enabled = Enabled::PATTERN_HEADER;
+        let matcher = Matcher::new(enabled, None, None);
+        assert!(!matcher.matchers.is_empty());
+
+        if let Ok(request) = request_builder.body(()) {
+            if let Ok(mapping) = matcher.get_match(&request, &mappings) {
+                assert_eq!(*mapping.priority(), 2);
                 assert!(mapping.response().body_file_name().is_some());
             } else {
                 assert!(false, "Unable to find a matching mapping!");

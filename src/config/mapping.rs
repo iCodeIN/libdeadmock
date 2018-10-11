@@ -18,6 +18,9 @@ use std::fmt;
     Clone, Debug, Default, Deserialize, Eq, Getters, Hash, MutGetters, PartialEq, Serialize,
 )]
 pub struct Mapping {
+    /// The name of this mapping.
+    #[get = "pub"]
+    name: String,
     /// The priority of this mapping.  Lower takes priority over higher in the case of multiple matches.
     #[get = "pub"]
     priority: u8,
@@ -56,10 +59,11 @@ crate mod test {
     use crate::config::response::test::{full_response, partial_response};
     use std::collections::BTreeMap;
 
-    const EMPTY_MAPPING: &str = r#"{"priority":0,"request":{},"response":{}}"#;
-    const PARTIAL_MAPPING: &str = r#"{"priority":10,"request":{"method":"GET","url":"http://a.url.com"},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"proxy_base_url":"http://cdcproxy.kroger.com"}}"#;
-    const FULL_MAPPING_JSON: &str = r#"{"priority":10,"request":{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}}"#;
-    const FULL_MAPPING_TOML: &str = r#"priority = 10
+    const EMPTY_MAPPING: &str = r#"{"name":"","priority":0,"request":{},"response":{}}"#;
+    const PARTIAL_MAPPING: &str = r#"{"name":"Test","priority":10,"request":{"method":"GET","url":"http://a.url.com"},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"proxy_base_url":"http://cdcproxy.kroger.com"}}"#;
+    const FULL_MAPPING_JSON: &str = r#"{"name":"Test","priority":10,"request":{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}}"#;
+    const FULL_MAPPING_TOML: &str = r#"name = "Test"
+priority = 10
 
 [request]
 method = "GET"
@@ -96,6 +100,7 @@ value = "application/json"
 
     crate fn partial_mapping() -> Mapping {
         let mut mapping = Mapping::default();
+        mapping.name = "Test".to_string();
         mapping.priority = 10;
         mapping.request = partial_request();
         mapping.response = partial_response();

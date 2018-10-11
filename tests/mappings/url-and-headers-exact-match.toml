@@ -1,9 +1,10 @@
+name = "URL and Headers Exact Match"
 priority = 1
 
 [request]
 url = "/json"
 
-[request.header]
+[[request.headers]]
 key = "Content-Type"
 value = "application/json"
 

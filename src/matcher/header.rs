@@ -8,11 +8,12 @@
 
 //! HTTP request single header matching
 use cached::{cached_key_result, UnboundCache};
-use crate::config::{self, Request as RequestConfig};
+use crate::config::{self, HeaderPattern, Request as RequestConfig};
 use crate::error::Error;
 use crate::matcher::{self, RequestMatch};
 use http::Request;
 use lazy_static::lazy_static;
+use libeither::Either;
 use regex::Regex;
 use slog::{trace, Logger};
 use slog_try::try_trace;
@@ -96,6 +97,36 @@ impl PatternMatch {
         self.stderr = stderr;
         self
     }
+
+    fn is_match_either(
+        &self,
+        actual: &str,
+        either: &Either<String, String>,
+        case_insensitive: bool,
+    ) -> bool {
+        if let Ok(expected) = either.left_ref() {
+            if case_insensitive {
+                actual.to_lowercase() == expected.clone()
+            } else {
+                actual == expected
+            }
+        } else if let Ok(expected) = either.right_ref() {
+            if let Ok(regex) = generate_regex(actual, expected) {
+                regex.is_match(actual)
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    fn is_header_match(&self, actual: &(&str, &str), expected: &HeaderPattern) -> Option<bool> {
+        Some(
+            self.is_match_either(actual.0, expected.key(), true)
+                && self.is_match_either(actual.1, expected.value(), false),
+        )
+    }
 }
 
 cached_key_result!{
@@ -119,7 +150,7 @@ impl RequestMatch for PatternMatch {
     ) -> Result<Option<bool>, Error> {
         if let Some(header_pattern) = request_config.header_pattern() {
             try_trace!(self.stdout, "Checking header pattern: '{}'", header_pattern);
-            let _headers_str: Vec<(&str, &str)> = request
+            let matched_header: Vec<bool> = request
                 .headers()
                 .iter()
                 .map(|(key, value)| (key.as_str(), value.to_str()))
@@ -127,8 +158,15 @@ impl RequestMatch for PatternMatch {
                     Ok(value) => Some((key, value)),
                     Err(_) => None,
                 })
+                .filter_map(|actual_header| self.is_header_match(&actual_header, header_pattern))
+                .filter(|x| *x)
                 .collect();
-            Ok(None)
+
+            if matched_header.len() == 1 && matched_header[0] {
+                Ok(Some(true))
+            } else {
+                Ok(None)
+            }
         } else {
             Ok(None)
         }
