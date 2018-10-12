@@ -15,7 +15,6 @@
     crate_visibility_modifier,
     duration_as_u128,
     futures_api,
-    tool_lints,
     try_from
 )]
 #![deny(
