@@ -45,12 +45,13 @@ impl RequestMatch for ExactMatch {
         if let Some(method) = request_config.method() {
             try_trace!(
                 self.stdout,
-                "Checking {} against {}",
+                "Exact Match (Method) - Checking {} against {}",
                 method,
                 request.method().as_str()
             );
             Ok(Some(request.method().as_str() == &method[..]))
         } else {
+            try_trace!(self.stdout, "Exact Match (Method) - No check performed");
             Ok(None)
         }
     }

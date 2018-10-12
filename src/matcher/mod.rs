@@ -207,7 +207,6 @@ impl Matcher {
         let matches = self
             .matchers
             .iter()
-            .inspect(|x| try_trace!(self.stdout, "Checking for '{}'", x))
             .map(|matcher| matcher.is_match(request, mapping.request()))
             // Filter out the Err
             .filter_map(|res| res.ok())
@@ -217,8 +216,7 @@ impl Matcher {
 
         let all_true = matches.iter().all(|x| *x);
 
-        println!("Matches: {:?}", matches);
-        println!("All: {}", all_true);
+        try_trace!(self.stdout, "Matches: {:?}, All: {}", matches, all_true);
         // Is the remaining list non-empty and all true?
         if !matches.is_empty() && matches.iter().all(|x| *x) {
             Some(mapping.clone())

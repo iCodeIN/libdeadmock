@@ -53,7 +53,11 @@ impl RequestMatch for ExactMatch {
         request_config: &config::Request,
     ) -> Result<Option<bool>, Error> {
         if let Some(header) = request_config.header() {
-            try_trace!(self.stdout, "Checking header: '{}'", header);
+            try_trace!(
+                self.stdout,
+                "Exact Match (Header) - Checking header: '{}'",
+                header
+            );
             if let Ok((ref expected_name, ref expected_value)) = matcher::to_header_tuple(header) {
                 let expected = (expected_name, expected_value);
                 let results: Vec<bool> = request
@@ -72,7 +76,7 @@ impl RequestMatch for ExactMatch {
                 Ok(Some(false))
             }
         } else {
-            try_trace!(self.stdout, "Exact header match not configured!");
+            try_trace!(self.stdout, "Exact Match (Header) - No check performed");
             Ok(None)
         }
     }
@@ -106,7 +110,7 @@ impl PatternMatch {
     ) -> bool {
         if let Ok(expected) = either.left_ref() {
             if case_insensitive {
-                actual.to_lowercase() == expected.clone()
+                actual == expected.to_lowercase()
             } else {
                 actual == expected
             }
@@ -149,7 +153,11 @@ impl RequestMatch for PatternMatch {
         request_config: &RequestConfig,
     ) -> Result<Option<bool>, Error> {
         if let Some(header_pattern) = request_config.header_pattern() {
-            try_trace!(self.stdout, "Checking header pattern: '{}'", header_pattern);
+            try_trace!(
+                self.stdout,
+                "Pattern Match (Header) - Checking header pattern: '{}'",
+                header_pattern
+            );
             let matched_header: Vec<bool> = request
                 .headers()
                 .iter()
@@ -168,6 +176,7 @@ impl RequestMatch for PatternMatch {
                 Ok(Some(false))
             }
         } else {
+            try_trace!(self.stdout, "Pattern Match (Header) - No check performed");
             Ok(None)
         }
     }

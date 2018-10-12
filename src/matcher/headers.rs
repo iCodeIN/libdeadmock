@@ -11,7 +11,8 @@ use crate::config;
 use crate::error::Error;
 use crate::matcher::{self, RequestMatch};
 use http::Request;
-use slog::Logger;
+use slog::{trace, Logger};
+use slog_try::try_trace;
 use std::fmt;
 
 /// Exactly match all headers on a HTTP request.
@@ -62,12 +63,18 @@ impl RequestMatch for ExactMatch {
         request: &Request<()>,
         request_config: &config::Request,
     ) -> Result<Option<bool>, Error> {
-        Ok(Some(
-            request_config
-                .headers()
-                .iter()
-                .filter_map(|header| self.actual_has_match(request, header))
-                .all(|v| v),
-        ))
+        if request_config.headers().is_empty() {
+            try_trace!(self.stdout, "Exact Match (Headers) - No check performed");
+            Ok(None)
+        } else {
+            try_trace!(self.stdout, "Exact Match (Headers) - Checking...");
+            Ok(Some(
+                request_config
+                    .headers()
+                    .iter()
+                    .filter_map(|header| self.actual_has_match(request, header))
+                    .all(|v| v),
+            ))
+        }
     }
 }

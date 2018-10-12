@@ -48,12 +48,13 @@ impl RequestMatch for ExactMatch {
         if let Some(url) = request_config.url() {
             try_trace!(
                 self.stdout,
-                "Checking {} against {}",
+                "Exact Match (URL) - Checking {} against {}",
                 url,
                 request.uri().path()
             );
             Ok(Some(request.uri().path() == &url[..]))
         } else {
+            try_trace!(self.stdout, "Exact Match (URL) - No check performed");
             Ok(None)
         }
     }
@@ -107,13 +108,19 @@ impl RequestMatch for PatternMatch {
     ) -> Result<Option<bool>, Error> {
         if let Some(url_pattern) = request_config.url_pattern() {
             let path = request.uri().path();
-            try_trace!(self.stdout, "Checking {} against {}", url_pattern, path);
+            try_trace!(
+                self.stdout,
+                "Pattern Match (URL) - Checking {} against {}",
+                url_pattern,
+                path
+            );
             if let Ok(regex) = generate_regex(path, url_pattern) {
                 Ok(Some(regex.is_match(path)))
             } else {
                 Ok(Some(false))
             }
         } else {
+            try_trace!(self.stdout, "Patten Match (URL) - No check performed");
             Ok(None)
         }
     }
