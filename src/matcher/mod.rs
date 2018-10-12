@@ -218,7 +218,7 @@ impl Matcher {
 
         try_trace!(self.stdout, "Matches: {:?}, All: {}", matches, all_true);
         // Is the remaining list non-empty and all true?
-        if !matches.is_empty() && matches.iter().all(|x| *x) {
+        if !matches.is_empty() && all_true {
             Some(mapping.clone())
         } else {
             None
