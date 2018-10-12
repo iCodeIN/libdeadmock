@@ -207,16 +207,20 @@ impl Matcher {
         let matches = self
             .matchers
             .iter()
+            // Generate a list of matches
+            // * If the matcher was configured and matches, returns `Some(true)`
+            // * If the matcher was configured and doesn't match, returns `Some(false)`
+            // * If the matcher was not configured, returns `None`
             .map(|matcher| matcher.is_match(request, mapping.request()))
-            // Filter out the Err
+            // Filter out any Errors
             .filter_map(|res| res.ok())
-            // Filter out the None
+            // Filter out the `None` from matchers that weren't configured
             .filter_map(|x| x)
             .collect::<Vec<bool>>();
 
         let all_true = matches.iter().all(|x| *x);
-
         try_trace!(self.stdout, "Matches: {:?}, All: {}", matches, all_true);
+
         // Is the remaining list non-empty and all true?
         if !matches.is_empty() && all_true {
             Some(mapping.clone())
