@@ -18,6 +18,10 @@ pub struct Request {
     #[get = "pub"]
     #[serde(skip_serializing_if = "Option::is_none")]
     method: Option<String>,
+    /// The HTTP request method pattern to match
+    #[get = "pub"]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    method_pattern: Option<String>,
     /// The url to exact match.
     #[get = "pub"]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -48,8 +52,9 @@ crate mod test {
 
     const EMPTY_REQUEST: &str = "{}";
     const PARTIAL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com"}"#;
-    const FULL_REQUEST_JSON: &str = r#"{"method":"GET","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}}"#;
+    const FULL_REQUEST_JSON: &str = r#"{"method":"GET","method_pattern":"P.*","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}}"#;
     const FULL_REQUEST_TOML: &str = r#"method = "GET"
+method_pattern = "P.*"
 url = "http://a.url.com"
 url_pattern = ".*jasonozias.*"
 
@@ -77,6 +82,7 @@ right = "^application/.*"
 
     crate fn full_request() -> Request {
         let mut request = partial_request();
+        request.method_pattern = Some("P.*".to_string());
         request.url_pattern = Some(".*jasonozias.*".to_string());
         request.headers = vec![content_type_header()];
         request.header = Some(content_type_header());

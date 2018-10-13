@@ -34,6 +34,8 @@ pub use self::header::PatternMatch as PatternMatchHeader;
 pub use self::headers::ExactMatch as ExactMatchHeaders;
 #[cfg(all(feature = "exact_match", feature = "method"))]
 pub use self::method::ExactMatch as ExactMatchMethod;
+#[cfg(all(feature = "pattern_match", feature = "method"))]
+pub use self::method::PatternMatch as PatternMatchMethod;
 #[cfg(all(feature = "exact_match", feature = "url"))]
 pub use self::url::ExactMatch as ExactMatchUrl;
 #[cfg(all(feature = "pattern_match", feature = "url"))]
@@ -43,17 +45,19 @@ bitflags!{
     /// Enabled flags for request matching types
     pub struct Enabled: u32 {
         /// Enable the exact matching on url
-        const EXACT_URL      = 0b0000_0001;
+        const EXACT_URL      = 0b0000_0000_0001;
         /// Enable the exact matching on method
-        const EXACT_METHOD   = 0b0000_0010;
+        const EXACT_METHOD   = 0b0000_0000_0010;
         /// Enable the exact matching on all headers
-        const EXACT_HEADERS  = 0b0000_0100;
+        const EXACT_HEADERS  = 0b0000_0000_0100;
         /// Enable the exact matching on one header
-        const EXACT_HEADER   = 0b0000_1000;
+        const EXACT_HEADER   = 0b0000_0000_1000;
         /// Enable the pattern matching on url
-        const PATTERN_URL    = 0b0001_0000;
+        const PATTERN_URL    = 0b0000_0001_0000;
         /// Enable the pattern matching on one header
-        const PATTERN_HEADER = 0b1000_0000;
+        const PATTERN_HEADER = 0b0000_1000_0000;
+        /// Enable the pattern matching on method
+        const PATTERN_METHOD = 0b0001_0000_0000;
     }
 }
 
@@ -163,6 +167,14 @@ impl Matcher {
             );
         }
 
+        if enabled.contains(Enabled::PATTERN_METHOD) {
+            let _ = matcher.push(
+                PatternMatchMethod::default()
+                    .set_stdout(matcher.stdout.clone())
+                    .set_stderr(matcher.stderr.clone()),
+            );
+        }
+
         matcher
     }
 
@@ -235,6 +247,7 @@ mod test {
     use super::Matcher;
     use crate::config::mappings::test::test_mappings;
     use crate::matcher::Enabled;
+    use http::request::Builder;
     use http::Request;
 
     #[test]
@@ -311,5 +324,63 @@ mod test {
         } else {
             assert!(false, "Unable to build the request to test!");
         }
+    }
+
+    #[allow(box_pointers)]
+    fn check_request(enabled: Enabled, request_builder: &mut Builder, priority: u8, name: &str) {
+        let mappings = test_mappings().expect("Unable to setup mappings!");
+        let matcher = Matcher::new(enabled, None, None);
+        assert!(!matcher.matchers.is_empty());
+
+        if let Ok(request) = request_builder.body(()) {
+            if let Ok(mapping) = matcher.get_match(&request, &mappings) {
+                assert_eq!(*mapping.priority(), priority);
+                assert_eq!(mapping.name(), name);
+                assert!(mapping.response().body_file_name().is_some());
+            } else {
+                assert!(false, "Unable to find a matching mapping!");
+            }
+        } else {
+            assert!(false, "Unable to build the request to test!");
+        }
+    }
+
+    #[test]
+    fn match_method_pattern() {
+        let mut put_request = Request::builder();
+        let _ = put_request.uri("/toodles");
+        let _ = put_request.header("Content-Type", "application/json");
+        let _ = put_request.method("PUT");
+
+        check_request(
+            Enabled::PATTERN_METHOD,
+            &mut put_request,
+            3,
+            "Method Pattern Match",
+        );
+
+        let mut post_request = Request::builder();
+        let _ = post_request.uri("/poodles");
+        let _ = post_request.header("Content-Type", "application/json");
+        let _ = post_request.method("POST");
+
+        check_request(
+            Enabled::PATTERN_METHOD,
+            &mut post_request,
+            3,
+            "Method Pattern Match",
+        );
+
+        let mut patch_request = Request::builder();
+        let _ = patch_request.uri("/noodles");
+        let _ = patch_request.header("Content-Type", "application/json");
+        let _ = patch_request.method("PATCH");
+
+        check_request(
+            Enabled::PATTERN_METHOD,
+            &mut patch_request,
+            3,
+            "Method Pattern Match",
+        );
     }
 }
