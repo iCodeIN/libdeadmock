@@ -10,7 +10,7 @@
 use cached::{cached_key_result, UnboundCache};
 use crate::config::{self, Request as RequestConfig};
 use crate::error::Error;
-use crate::matcher::RequestMatch;
+use crate::matcher::{RequestMatch, Slogger};
 use http::Request;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -25,15 +25,15 @@ pub struct ExactMatch {
     stderr: Option<Logger>,
 }
 
-impl ExactMatch {
+impl Slogger for ExactMatch {
     /// Add a stdout logger
-    pub fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
+    fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
         self.stdout = stdout;
         self
     }
 
     /// Add a stderr logger
-    pub fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
+    fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
         self.stderr = stderr;
         self
     }
@@ -73,15 +73,15 @@ pub struct PatternMatch {
     stderr: Option<Logger>,
 }
 
-impl PatternMatch {
+impl Slogger for PatternMatch {
     /// Add a stdout logger
-    pub fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
+    fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
         self.stdout = stdout;
         self
     }
 
     /// Add a stderr logger
-    pub fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
+    fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
         self.stderr = stderr;
         self
     }

@@ -32,6 +32,8 @@ pub use self::header::ExactMatch as ExactMatchHeader;
 pub use self::header::PatternMatch as PatternMatchHeader;
 #[cfg(all(feature = "exact_match", feature = "headers"))]
 pub use self::headers::ExactMatch as ExactMatchHeaders;
+#[cfg(all(feature = "pattern_match", feature = "headers"))]
+pub use self::headers::PatternMatch as PatternMatchHeaders;
 #[cfg(all(feature = "exact_match", feature = "method"))]
 pub use self::method::ExactMatch as ExactMatchMethod;
 #[cfg(all(feature = "pattern_match", feature = "method"))]
@@ -45,19 +47,29 @@ bitflags!{
     /// Enabled flags for request matching types
     pub struct Enabled: u32 {
         /// Enable the exact matching on url
-        const EXACT_URL      = 0b0000_0000_0001;
+        #[cfg(all(feature = "exact_match", feature = "url"))]
+        const EXACT_URL       = 0b0000_0000_0001;
         /// Enable the exact matching on method
-        const EXACT_METHOD   = 0b0000_0000_0010;
+        #[cfg(all(feature = "exact_match", feature = "method"))]
+        const EXACT_METHOD    = 0b0000_0000_0010;
         /// Enable the exact matching on all headers
-        const EXACT_HEADERS  = 0b0000_0000_0100;
+        #[cfg(all(feature = "exact_match", feature = "headers"))]
+        const EXACT_HEADERS   = 0b0000_0000_0100;
         /// Enable the exact matching on one header
-        const EXACT_HEADER   = 0b0000_0000_1000;
+        #[cfg(all(feature = "exact_match", feature = "header"))]
+        const EXACT_HEADER    = 0b0000_0000_1000;
         /// Enable the pattern matching on url
-        const PATTERN_URL    = 0b0000_0001_0000;
+        #[cfg(all(feature = "pattern_match", feature = "url"))]
+        const PATTERN_URL     = 0b0000_0001_0000;
         /// Enable the pattern matching on one header
-        const PATTERN_HEADER = 0b0000_1000_0000;
+        #[cfg(all(feature = "pattern_match", feature = "header"))]
+        const PATTERN_HEADER  = 0b0000_1000_0000;
         /// Enable the pattern matching on method
-        const PATTERN_METHOD = 0b0001_0000_0000;
+        #[cfg(all(feature = "pattern_match", feature = "method"))]
+        const PATTERN_METHOD  = 0b0001_0000_0000;
+        /// Enable the pattern matching on all headers
+        #[cfg(all(feature = "pattern_match", feature = "headers"))]
+        const PATTERN_HEADERS = 0b0010_0000_0000;
     }
 }
 
@@ -73,6 +85,14 @@ crate fn to_header_tuple(header: &config::Header) -> Result<HeaderTuple, failure
 
 crate fn equal_headers(actual: HeaderTupleRef<'_>, expected: HeaderTupleRef<'_>) -> bool {
     actual == expected
+}
+
+/// A struct that supports slog logging
+pub trait Slogger {
+    /// Add an optional stdout `slog` logger to the struct.
+    fn set_stdout(self, stdout: Option<Logger>) -> Self;
+    /// Add an optional stderr `slog` logger to the struct.
+    fn set_stderr(self, stderr: Option<Logger>) -> Self;
 }
 
 /// A request matcher
@@ -109,6 +129,83 @@ impl fmt::Debug for Matcher {
     }
 }
 
+#[cfg(all(feature = "exact_match", feature = "url"))]
+fn enable_exact_match_url(enabled: Enabled, matcher: &mut Matcher) {
+    enable_matcher::<ExactMatchUrl>(enabled, Enabled::EXACT_URL, matcher);
+}
+
+#[cfg(not(all(feature = "exact_match", feature = "url")))]
+fn enable_exact_match_url(_enabled: Enabled, _matcher: &mut Matcher) {}
+
+#[cfg(all(feature = "pattern_match", feature = "url"))]
+fn enable_pattern_match_url(enabled: Enabled, matcher: &mut Matcher) {
+    enable_matcher::<PatternMatchUrl>(enabled, Enabled::PATTERN_URL, matcher);
+}
+
+#[cfg(not(all(feature = "pattern_match", feature = "url")))]
+fn enable_pattern_match_url(_enabled: Enabled, _matcher: &mut Matcher) {}
+
+#[cfg(all(feature = "exact_match", feature = "method"))]
+fn enable_exact_match_mehod(enabled: Enabled, matcher: &mut Matcher) {
+    enable_matcher::<ExactMatchMethod>(enabled, Enabled::EXACT_METHOD, matcher);
+}
+
+#[cfg(not(all(feature = "exact_match", feature = "method")))]
+fn enable_exact_match_method(_enabled: Enabled, _matcher: &mut Matcher) {}
+
+#[cfg(all(feature = "pattern_match", feature = "method"))]
+fn enable_pattern_match_method(enabled: Enabled, matcher: &mut Matcher) {
+    enable_matcher::<PatternMatchMethod>(enabled, Enabled::PATTERN_METHOD, matcher);
+}
+
+#[cfg(not(all(feature = "pattern_match", feature = "method")))]
+fn enable_pattern_match_method(_enabled: Enabled, _matcher: &mut Matcher) {}
+
+#[cfg(all(feature = "exact_match", feature = "header"))]
+fn enable_exact_match_header(enabled: Enabled, matcher: &mut Matcher) {
+    enable_matcher::<ExactMatchHeader>(enabled, Enabled::EXACT_HEADER, matcher);
+}
+
+#[cfg(not(all(feature = "exact_match", feature = "header")))]
+fn enable_exact_match_header(_enabled: Enabled, _matcher: &mut Matcher) {}
+
+#[cfg(all(feature = "pattern_match", feature = "header"))]
+fn enable_pattern_match_header(enabled: Enabled, matcher: &mut Matcher) {
+    enable_matcher::<PatternMatchHeader>(enabled, Enabled::PATTERN_HEADER, matcher);
+}
+
+#[cfg(not(all(feature = "pattern_match", feature = "header")))]
+fn enable_pattern_match_header(_enabled: Enabled, _matcher: &mut Matcher) {}
+
+#[cfg(all(feature = "exact_match", feature = "headers"))]
+fn enable_exact_match_headers(enabled: Enabled, matcher: &mut Matcher) {
+    enable_matcher::<ExactMatchHeaders>(enabled, Enabled::EXACT_HEADERS, matcher);
+}
+
+#[cfg(not(all(feature = "exact_match", feature = "headers")))]
+fn enable_exact_match_headers(_enabled: Enabled, _matcher: &mut Matcher) {}
+
+#[cfg(all(feature = "pattern_match", feature = "headers"))]
+fn enable_pattern_match_headers(enabled: Enabled, matcher: &mut Matcher) {
+    enable_matcher::<PatternMatchHeaders>(enabled, Enabled::PATTERN_HEADERS, matcher);
+}
+
+#[cfg(not(all(feature = "pattern_match", feature = "headers")))]
+fn enable_pattern_match_headers(_enabled: Enabled, _matcher: &mut Matcher) {}
+
+fn enable_matcher<T>(enabled: Enabled, contains: Enabled, matcher: &mut Matcher)
+where
+    T: 'static + RequestMatch + Default + Slogger,
+{
+    if enabled.contains(contains) {
+        let _ = matcher.push(
+            T::default()
+                .set_stdout(matcher.stdout.clone())
+                .set_stderr(matcher.stderr.clone()),
+        );
+    }
+}
+
 #[allow(box_pointers)]
 impl Matcher {
     /// Create a new `Matcher`
@@ -119,61 +216,14 @@ impl Matcher {
             stderr,
         };
 
-        if enabled.contains(Enabled::EXACT_URL) {
-            let _ = matcher.push(
-                ExactMatchUrl::default()
-                    .set_stdout(matcher.stdout.clone())
-                    .set_stderr(matcher.stderr.clone()),
-            );
-        }
-
-        if enabled.contains(Enabled::EXACT_METHOD) {
-            let _ = matcher.push(
-                ExactMatchMethod::default()
-                    .set_stdout(matcher.stdout.clone())
-                    .set_stderr(matcher.stderr.clone()),
-            );
-        }
-
-        if enabled.contains(Enabled::EXACT_HEADER) {
-            let _ = matcher.push(
-                ExactMatchHeader::default()
-                    .set_stdout(matcher.stdout.clone())
-                    .set_stderr(matcher.stderr.clone()),
-            );
-        }
-
-        if enabled.contains(Enabled::EXACT_HEADERS) {
-            let _ = matcher.push(
-                ExactMatchHeaders::default()
-                    .set_stdout(matcher.stdout.clone())
-                    .set_stderr(matcher.stderr.clone()),
-            );
-        }
-
-        if enabled.contains(Enabled::PATTERN_URL) {
-            let _ = matcher.push(
-                PatternMatchUrl::default()
-                    .set_stdout(matcher.stdout.clone())
-                    .set_stderr(matcher.stderr.clone()),
-            );
-        }
-
-        if enabled.contains(Enabled::PATTERN_HEADER) {
-            let _ = matcher.push(
-                PatternMatchHeader::default()
-                    .set_stdout(matcher.stdout.clone())
-                    .set_stderr(matcher.stderr.clone()),
-            );
-        }
-
-        if enabled.contains(Enabled::PATTERN_METHOD) {
-            let _ = matcher.push(
-                PatternMatchMethod::default()
-                    .set_stdout(matcher.stdout.clone())
-                    .set_stderr(matcher.stderr.clone()),
-            );
-        }
+        enable_exact_match_url(enabled, &mut matcher);
+        enable_pattern_match_url(enabled, &mut matcher);
+        enable_exact_match_mehod(enabled, &mut matcher);
+        enable_pattern_match_method(enabled, &mut matcher);
+        enable_exact_match_header(enabled, &mut matcher);
+        enable_pattern_match_header(enabled, &mut matcher);
+        enable_exact_match_headers(enabled, &mut matcher);
+        enable_pattern_match_headers(enabled, &mut matcher);
 
         matcher
     }

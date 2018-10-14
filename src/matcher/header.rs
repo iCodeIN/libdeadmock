@@ -10,7 +10,7 @@
 use cached::{cached_key_result, UnboundCache};
 use crate::config::{self, HeaderPattern, Request as RequestConfig};
 use crate::error::Error;
-use crate::matcher::{self, RequestMatch};
+use crate::matcher::{self, RequestMatch, Slogger};
 use http::Request;
 use lazy_static::lazy_static;
 use libeither::Either;
@@ -26,15 +26,15 @@ pub struct ExactMatch {
     stderr: Option<Logger>,
 }
 
-impl ExactMatch {
+impl Slogger for ExactMatch {
     /// Add a stdout logger
-    pub fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
+    fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
         self.stdout = stdout;
         self
     }
 
     /// Add a stderr logger
-    pub fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
+    fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
         self.stderr = stderr;
         self
     }
@@ -90,18 +90,6 @@ pub struct PatternMatch {
 }
 
 impl PatternMatch {
-    /// Add a stdout logger
-    pub fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
-        self.stdout = stdout;
-        self
-    }
-
-    /// Add a stderr logger
-    pub fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
-        self.stderr = stderr;
-        self
-    }
-
     fn is_match_either(
         &self,
         actual: &str,
@@ -130,6 +118,20 @@ impl PatternMatch {
             self.is_match_either(actual.0, expected.key(), true)
                 && self.is_match_either(actual.1, expected.value(), false),
         )
+    }
+}
+
+impl Slogger for PatternMatch {
+    /// Add a stdout logger
+    fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
+        self.stdout = stdout;
+        self
+    }
+
+    /// Add a stderr logger
+    fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
+        self.stderr = stderr;
+        self
     }
 }
 
