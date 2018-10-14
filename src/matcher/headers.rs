@@ -88,6 +88,16 @@ pub struct PatternMatch {
     stderr: Option<Logger>,
 }
 
+impl PatternMatch {
+    fn actual_has_match(
+        &self,
+        _request: &Request<()>,
+        _header_pattern: &config::HeaderPattern,
+    ) -> Option<bool> {
+        None
+    }
+}
+
 impl Slogger for PatternMatch {
     /// Add a stdout logger
     fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
@@ -111,7 +121,7 @@ impl fmt::Display for PatternMatch {
 impl RequestMatch for PatternMatch {
     fn is_match(
         &self,
-        _request: &Request<()>,
+        request: &Request<()>,
         request_config: &config::Request,
     ) -> Result<Option<bool>, Error> {
         if request_config.headers().is_empty() {
@@ -119,7 +129,13 @@ impl RequestMatch for PatternMatch {
             Ok(None)
         } else {
             try_trace!(self.stdout, "Pattern Match (Headers) - Not Implemented!!");
-            Ok(None)
+            Ok(Some(
+                request_config
+                    .headers_pattern()
+                    .iter()
+                    .filter_map(|header_pattern| self.actual_has_match(request, header_pattern))
+                    .all(|v| v),
+            ))
         }
     }
 }

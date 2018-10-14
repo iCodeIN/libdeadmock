@@ -228,18 +228,6 @@ impl Matcher {
         matcher
     }
 
-    /// Add a stdout logger
-    pub fn set_stdout(&mut self, stdout: Option<Logger>) -> &mut Self {
-        self.stdout = stdout;
-        self
-    }
-
-    /// Add a stderr logger
-    pub fn set_stderr(&mut self, stderr: Option<Logger>) -> &mut Self {
-        self.stderr = stderr;
-        self
-    }
-
     /// Add a request matcher to the list.
     fn push<T: RequestMatch + 'static>(&mut self, request_match: T) -> &mut Self {
         self.matchers.push(Box::new(request_match));
@@ -289,6 +277,20 @@ impl Matcher {
         } else {
             None
         }
+    }
+}
+
+impl Slogger for Matcher {
+    /// Add a stdout logger
+    fn set_stdout(mut self, stdout: Option<Logger>) -> Self {
+        self.stdout = stdout;
+        self
+    }
+
+    /// Add a stderr logger
+    fn set_stderr(mut self, stderr: Option<Logger>) -> Self {
+        self.stderr = stderr;
+        self
     }
 }
 

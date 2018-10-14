@@ -35,6 +35,11 @@ pub struct Request {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     #[get = "pub"]
     headers: Vec<Header>,
+    /// The HTTP headers to match (pattern).
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[get = "pub"]
+    headers_pattern: Vec<HeaderPattern>,
     /// The HTTP header to match (exact).
     #[serde(skip_serializing_if = "Option::is_none")]
     #[get = "pub"]
@@ -48,11 +53,14 @@ pub struct Request {
 #[cfg(test)]
 crate mod test {
     use super::Request;
-    use crate::config::header::test::{content_type_header, content_type_header_pattern};
+    use crate::config::header::test::{
+        accept_star_pattern, content_type_header, content_type_header_pattern,
+        content_type_star_pattern,
+    };
 
     const EMPTY_REQUEST: &str = "{}";
     const PARTIAL_REQUEST: &str = r#"{"method":"GET","url":"http://a.url.com"}"#;
-    const FULL_REQUEST_JSON: &str = r#"{"method":"GET","method_pattern":"P.*","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}}"#;
+    const FULL_REQUEST_JSON: &str = r#"{"method":"GET","method_pattern":"P.*","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"headers_pattern":[{"key":{"left":"Accept","right":null},"value":{"left":null,"right":"*"}},{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"*"}}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}}"#;
     const FULL_REQUEST_TOML: &str = r#"method = "GET"
 method_pattern = "P.*"
 url = "http://a.url.com"
@@ -61,6 +69,20 @@ url_pattern = ".*jasonozias.*"
 [[headers]]
 key = "Content-Type"
 value = "application/json"
+
+[[headers_pattern]]
+[headers_pattern.key]
+left = "Accept"
+
+[headers_pattern.value]
+right = "*"
+
+[[headers_pattern]]
+[headers_pattern.key]
+left = "Content-Type"
+
+[headers_pattern.value]
+right = "*"
 
 [header]
 key = "Content-Type"
@@ -85,6 +107,7 @@ right = "^application/.*"
         request.method_pattern = Some("P.*".to_string());
         request.url_pattern = Some(".*jasonozias.*".to_string());
         request.headers = vec![content_type_header()];
+        request.headers_pattern = vec![accept_star_pattern(), content_type_star_pattern()];
         request.header = Some(content_type_header());
         request.header_pattern = Some(content_type_header_pattern());
         request

@@ -87,6 +87,20 @@ right = "^application/.*"
         }
     }
 
+    crate fn content_type_star_pattern() -> HeaderPattern {
+        HeaderPattern {
+            key: Either::new_left("Content-Type".to_string()),
+            value: Either::new_right("*".to_string()),
+        }
+    }
+
+    crate fn accept_star_pattern() -> HeaderPattern {
+        HeaderPattern {
+            key: Either::new_left("Accept".to_string()),
+            value: Either::new_right("*".to_string()),
+        }
+    }
+
     crate fn additional_proxy_request_headers() -> Header {
         let mut header = Header::default();
         (*header.key_mut()) = "Authorization".to_string();

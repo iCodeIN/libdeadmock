@@ -61,7 +61,7 @@ crate mod test {
 
     const EMPTY_MAPPING: &str = r#"{"name":"","priority":0,"request":{},"response":{}}"#;
     const PARTIAL_MAPPING: &str = r#"{"name":"Test","priority":10,"request":{"method":"GET","url":"http://a.url.com"},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"proxy_base_url":"http://cdcproxy.kroger.com"}}"#;
-    const FULL_MAPPING_JSON: &str = r#"{"name":"Test","priority":10,"request":{"method":"GET","method_pattern":"P.*","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}}"#;
+    const FULL_MAPPING_JSON: &str = r#"{"name":"Test","priority":10,"request":{"method":"GET","method_pattern":"P.*","url":"http://a.url.com","url_pattern":".*jasonozias.*","headers":[{"key":"Content-Type","value":"application/json"}],"headers_pattern":[{"key":{"left":"Accept","right":null},"value":{"left":null,"right":"*"}},{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"*"}}],"header":{"key":"Content-Type","value":"application/json"},"header_pattern":{"key":{"left":"Content-Type","right":null},"value":{"left":null,"right":"^application/.*"}}},"response":{"status":200,"headers":[{"key":"Content-Type","value":"application/json"}],"body_file_name":"test.json","proxy_base_url":"http://cdcproxy.kroger.com","additional_proxy_request_headers":[{"key":"Authorization","value":"Basic abcdef123"}]}}"#;
     const FULL_MAPPING_TOML: &str = r#"name = "Test"
 priority = 10
 
@@ -74,6 +74,20 @@ url_pattern = ".*jasonozias.*"
 [[request.headers]]
 key = "Content-Type"
 value = "application/json"
+
+[[request.headers_pattern]]
+[request.headers_pattern.key]
+left = "Accept"
+
+[request.headers_pattern.value]
+right = "*"
+
+[[request.headers_pattern]]
+[request.headers_pattern.key]
+left = "Content-Type"
+
+[request.headers_pattern.value]
+right = "*"
 
 [request.header]
 key = "Content-Type"
