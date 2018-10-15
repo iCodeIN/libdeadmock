@@ -8,9 +8,12 @@
 
 //! HTTP request matching for the server.
 use bitflags::bitflags;
-use crate::config::{self, Mapping, Mappings, Request as RequestConfig};
+#[cfg(feature = "headers")]
+use crate::config::Header;
+use crate::config::{Mapping, Mappings, Request as RequestConfig};
 use crate::error::Error;
 use crate::error::ErrorKind::MappingNotFound;
+#[cfg(feature = "headers")]
 use http::header::{HeaderName, HeaderValue};
 use http::Request;
 use slog::{trace, Logger};
@@ -73,16 +76,20 @@ bitflags!{
     }
 }
 
+#[cfg(feature = "headers")]
 crate type HeaderTuple = (HeaderName, HeaderValue);
+#[cfg(feature = "headers")]
 crate type HeaderTupleRef<'a> = (&'a HeaderName, &'a HeaderValue);
 
-crate fn to_header_tuple(header: &config::Header) -> Result<HeaderTuple, failure::Error> {
+#[cfg(feature = "headers")]
+crate fn to_header_tuple(header: &Header) -> Result<HeaderTuple, failure::Error> {
     Ok((
         HeaderName::from_bytes(header.key().as_bytes())?,
         HeaderValue::from_bytes(header.value().as_bytes())?,
     ))
 }
 
+#[cfg(feature = "headers")]
 crate fn equal_headers(actual: HeaderTupleRef<'_>, expected: HeaderTupleRef<'_>) -> bool {
     actual == expected
 }
@@ -146,7 +153,7 @@ fn enable_pattern_match_url(enabled: Enabled, matcher: &mut Matcher) {
 fn enable_pattern_match_url(_enabled: Enabled, _matcher: &mut Matcher) {}
 
 #[cfg(all(feature = "exact_match", feature = "method"))]
-fn enable_exact_match_mehod(enabled: Enabled, matcher: &mut Matcher) {
+fn enable_exact_match_method(enabled: Enabled, matcher: &mut Matcher) {
     enable_matcher::<ExactMatchMethod>(enabled, Enabled::EXACT_METHOD, matcher);
 }
 
@@ -218,7 +225,7 @@ impl Matcher {
 
         enable_exact_match_url(enabled, &mut matcher);
         enable_pattern_match_url(enabled, &mut matcher);
-        enable_exact_match_mehod(enabled, &mut matcher);
+        enable_exact_match_method(enabled, &mut matcher);
         enable_pattern_match_method(enabled, &mut matcher);
         enable_exact_match_header(enabled, &mut matcher);
         enable_pattern_match_header(enabled, &mut matcher);
