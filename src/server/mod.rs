@@ -12,4 +12,3 @@ crate mod handler;
 crate mod header;
 
 pub use self::handler::{handle, run, Handler};
-pub use self::header::header;
