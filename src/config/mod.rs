@@ -7,6 +7,7 @@
 // modified, or distributed except according to those terms.
 
 //! Configuration for the server.
+crate mod files;
 crate mod header;
 crate mod mapping;
 crate mod mappings;
@@ -15,6 +16,7 @@ crate mod request;
 crate mod response;
 crate mod runtime;
 
+pub use self::files::Files;
 pub use self::header::{Header, HeaderPattern};
 pub use self::mapping::Mapping;
 pub use self::mappings::Mappings;

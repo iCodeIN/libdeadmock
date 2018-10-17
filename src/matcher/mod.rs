@@ -304,6 +304,7 @@ impl Slogger for Matcher {
 #[cfg(test)]
 mod test {
     use super::Matcher;
+    use crate::config::files::test::test_files;
     use crate::config::mappings::test::test_mappings;
     use crate::matcher::Enabled;
     use http::request::Builder;
@@ -312,6 +313,7 @@ mod test {
     #[test]
     #[allow(box_pointers)]
     fn matching() {
+        assert!(test_files().is_ok());
         let mappings = test_mappings().expect("Unable to setup mappings!");
 
         let mut request_builder = Request::builder();
