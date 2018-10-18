@@ -7,10 +7,14 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request headers matching
+use cached::{cached_key_result, UnboundCache};
 use crate::config;
 use crate::error::Error;
 use crate::matcher::{self, RequestMatch, Slogger};
 use http::Request;
+use lazy_static::lazy_static;
+use libeither::Either;
+use regex::Regex;
 use slog::{trace, Logger};
 use slog_try::try_trace;
 use std::fmt;
@@ -89,12 +93,38 @@ pub struct PatternMatch {
 }
 
 impl PatternMatch {
-    fn actual_has_match(
+    fn is_match_either(
         &self,
-        _request: &Request<()>,
-        _header_pattern: &config::HeaderPattern,
+        actual: &str,
+        either: &Either<String, String>,
+        case_insensitive: bool,
+    ) -> bool {
+        if let Ok(expected) = either.left_ref() {
+            if case_insensitive {
+                actual == expected.to_lowercase()
+            } else {
+                actual == expected
+            }
+        } else if let Ok(expected) = either.right_ref() {
+            if let Ok(regex) = generate_regex(actual, expected) {
+                regex.is_match(actual)
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    fn is_header_match(
+        &self,
+        actual: &(&str, &str),
+        expected: &config::HeaderPattern,
     ) -> Option<bool> {
-        None
+        Some(
+            self.is_match_either(actual.0, expected.key(), true)
+                && self.is_match_either(actual.1, expected.value(), false),
+        )
     }
 }
 
@@ -118,6 +148,19 @@ impl fmt::Display for PatternMatch {
     }
 }
 
+cached_key_result!{
+    REGEX: UnboundCache<String, Regex> = UnboundCache::new();
+    Key = { actual.to_string() };
+    fn generate_regex(actual: &str, header_pattern: &str) -> Result<Regex, String> = {
+        let regex_result = Regex::new(header_pattern);
+
+        match regex_result {
+            Ok(regex) => Ok(regex),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+}
+
 impl RequestMatch for PatternMatch {
     fn is_match(
         &self,
@@ -128,14 +171,35 @@ impl RequestMatch for PatternMatch {
             try_trace!(self.stdout, "Pattern Match (Headers) - No check performed");
             Ok(None)
         } else {
-            try_trace!(self.stdout, "Pattern Match (Headers) - Not Implemented!!");
-            Ok(Some(
-                request_config
-                    .headers_pattern()
-                    .iter()
-                    .filter_map(|header_pattern| self.actual_has_match(request, header_pattern))
-                    .all(|v| v),
-            ))
+            try_trace!(
+                self.stdout,
+                "Pattern Match (Headers) - Checking that all header patterns match"
+            );
+            let all_header_patterns_match = request_config
+                .headers_pattern()
+                .iter()
+                .map(|header_pattern| {
+                    // For every header pattern, loop through the actual
+                    // headers looking for one match.
+                    let matched_header: Vec<bool> = request
+                        .headers()
+                        .iter()
+                        .map(|(key, value)| (key.as_str(), value.to_str()))
+                        .filter_map(|(key, result)| match result {
+                            Ok(value) => Some((key, value)),
+                            Err(_) => None,
+                        })
+                        .filter_map(|actual_header| {
+                            self.is_header_match(&actual_header, header_pattern)
+                        })
+                        .filter(|x| *x)
+                        .collect();
+
+                    matched_header.len() == 1 && matched_header[0]
+                })
+                .all(|v| v);
+
+            Ok(Some(all_header_patterns_match))
         }
     }
 }

@@ -1,0 +1,19 @@
+name = "Header Pattern Match"
+priority = 2
+
+[request]
+url = "/header-pattern"
+
+[[request.headers_pattern]]
+[request.headers_pattern.key]
+left = "X-Correlation-Id"
+
+[request.headers_pattern.value]
+right = '^\d{5}$'
+
+[response]
+body_file_name = "header-pattern-match-response.json"
+
+[[response.headers]]
+key = "Content-Type"
+value = "application/json"
