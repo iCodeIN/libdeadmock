@@ -167,7 +167,7 @@ impl RequestMatch for PatternMatch {
         request: &Request<()>,
         request_config: &config::Request,
     ) -> Result<Option<bool>, Error> {
-        if request_config.headers().is_empty() {
+        if request_config.headers_pattern().is_empty() {
             try_trace!(self.stdout, "Pattern Match (Headers) - No check performed");
             Ok(None)
         } else {
@@ -175,7 +175,7 @@ impl RequestMatch for PatternMatch {
                 self.stdout,
                 "Pattern Match (Headers) - Checking that all header patterns match"
             );
-            let all_header_patterns_match = request_config
+            let headers_pattern_match: Vec<bool> = request_config
                 .headers_pattern()
                 .iter()
                 .map(|header_pattern| {
@@ -197,7 +197,10 @@ impl RequestMatch for PatternMatch {
 
                     matched_header.len() == 1 && matched_header[0]
                 })
-                .all(|v| v);
+                .collect();
+
+            let all_header_patterns_match =
+                !headers_pattern_match.is_empty() && headers_pattern_match.iter().all(|v| *v);
 
             Ok(Some(all_header_patterns_match))
         }

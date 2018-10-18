@@ -76,6 +76,107 @@ bitflags!{
     }
 }
 
+impl Enabled {
+    /// Enable all of the exact matching.
+    pub fn exact() -> Self {
+        Self::exact_url() | Self::exact_method() | Self::exact_header() | Self::exact_headers()
+    }
+
+    /// Enable all of the pattern matching.
+    pub fn pattern() -> Self {
+        Self::pattern_url()
+            | Self::pattern_method()
+            | Self::pattern_header()
+            | Self::pattern_headers()
+    }
+
+    #[cfg(all(feature = "exact_match", feature = "url"))]
+    fn exact_url() -> Self {
+        Self::EXACT_URL
+    }
+
+    #[cfg(not(all(feature = "exact_match", feature = "url")))]
+    fn exact_url() -> Self {
+        Self::empty()
+    }
+
+    #[cfg(all(feature = "exact_match", feature = "method"))]
+    fn exact_method() -> Self {
+        Self::EXACT_METHOD
+    }
+
+    #[cfg(not(all(feature = "exact_match", feature = "method")))]
+    fn exact_method() -> Self {
+        Self::empty()
+    }
+
+    #[cfg(all(feature = "exact_match", feature = "header"))]
+    fn exact_header() -> Self {
+        Self::EXACT_HEADER
+    }
+
+    #[cfg(not(all(feature = "exact_match", feature = "header")))]
+    fn exact_header() -> Self {
+        Self::empty()
+    }
+
+    #[cfg(all(feature = "exact_match", feature = "headers"))]
+    fn exact_headers() -> Self {
+        Self::EXACT_HEADERS
+    }
+
+    #[cfg(not(all(feature = "exact_match", feature = "headers")))]
+    fn exact_headers() -> Self {
+        Self::empty()
+    }
+
+    #[cfg(all(feature = "pattern_match", feature = "url"))]
+    fn pattern_url() -> Self {
+        Self::PATTERN_URL
+    }
+
+    #[cfg(not(all(feature = "pattern_match", feature = "url")))]
+    fn pattern_url() -> Self {
+        Self::empty()
+    }
+
+    #[cfg(all(feature = "pattern_match", feature = "method"))]
+    fn pattern_method() -> Self {
+        Self::PATTERN_METHOD
+    }
+
+    #[cfg(not(all(feature = "pattern_match", feature = "method")))]
+    fn pattern_method() -> Self {
+        Self::empty()
+    }
+
+    #[cfg(all(feature = "pattern_match", feature = "header"))]
+    fn pattern_header() -> Self {
+        Self::PATTERN_HEADER
+    }
+
+    #[cfg(not(all(feature = "pattern_match", feature = "header")))]
+    fn pattern_header() -> Self {
+        Self::empty()
+    }
+
+    #[cfg(all(feature = "pattern_match", feature = "headers"))]
+    fn pattern_headers() -> Self {
+        Self::PATTERN_HEADERS
+    }
+
+    #[cfg(not(all(feature = "pattern_match", feature = "headers")))]
+    fn pattern_headers() -> Self {
+        Self::empty()
+    }
+}
+
+impl fmt::Display for Enabled {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[cfg(feature = "headers")]
 crate type HeaderTuple = (HeaderName, HeaderValue);
 #[cfg(feature = "headers")]
@@ -311,6 +412,38 @@ mod test {
     use http::Request;
 
     #[test]
+    fn enable_pattern() {
+        let all_pattern = Enabled::pattern();
+        assert!(!all_pattern.is_empty());
+        assert!(all_pattern.contains(
+            Enabled::PATTERN_URL
+                | Enabled::PATTERN_METHOD
+                | Enabled::PATTERN_HEADER
+                | Enabled::PATTERN_HEADERS
+        ));
+        assert!(!all_pattern.contains(Enabled::EXACT_URL));
+        assert!(!all_pattern.contains(Enabled::EXACT_METHOD));
+        assert!(!all_pattern.contains(Enabled::EXACT_HEADER));
+        assert!(!all_pattern.contains(Enabled::EXACT_HEADERS));
+    }
+
+    #[test]
+    fn enable_exact() {
+        let all_exact = Enabled::exact();
+        assert!(!all_exact.is_empty());
+        assert!(all_exact.contains(
+            Enabled::EXACT_URL
+                | Enabled::EXACT_METHOD
+                | Enabled::EXACT_HEADER
+                | Enabled::EXACT_HEADERS
+        ));
+        assert!(!all_exact.contains(Enabled::PATTERN_URL));
+        assert!(!all_exact.contains(Enabled::PATTERN_METHOD));
+        assert!(!all_exact.contains(Enabled::PATTERN_HEADER));
+        assert!(!all_exact.contains(Enabled::PATTERN_HEADERS));
+    }
+
+    #[test]
     #[allow(box_pointers)]
     fn matching() {
         assert!(test_files().is_ok());
@@ -406,6 +539,18 @@ mod test {
         }
     }
 
+    #[allow(box_pointers)]
+    fn check_no_match(enabled: Enabled, request_builder: &mut Builder) {
+        let mappings = test_mappings().expect("Unable to setup mappings!");
+        let matcher = Matcher::new(enabled, None, None);
+        assert!(!matcher.matchers.is_empty());
+
+        if let Ok(request) = request_builder.body(()) {
+            assert!(matcher.get_match(&request, &mappings).is_err());
+        } else {
+            assert!(false, "Unable to build the request to test!");
+        }
+    }
     #[test]
     fn match_method_pattern() {
         let mut put_request = Request::builder();
@@ -443,5 +588,39 @@ mod test {
             3,
             "Method Pattern Match",
         );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn match_headers_pattern() {
+        let mut headers_request = Request::builder();
+        let _ = headers_request.uri("/header-pattern");
+        let _ = headers_request.header("X-Correlation-Id", "12345");
+        let _ = headers_request.header("X-Loyalty-Id", "abcd-1234");
+
+        check_request(
+            Enabled::PATTERN_HEADERS,
+            &mut headers_request,
+            3,
+            "Headers Pattern Match",
+        );
+
+        let mut long_corr_id = Request::builder();
+        let _ = long_corr_id.header("X-Correlation-Id", "123456");
+        let _ = long_corr_id.header("X-Loyalty-Id", "abcd-1234");
+
+        check_no_match(Enabled::PATTERN_HEADERS, &mut long_corr_id);
+
+        let mut short_corr_id = Request::builder();
+        let _ = short_corr_id.header("X-Correlation-Id", "1234");
+        let _ = short_corr_id.header("X-Loyalty-Id", "abcd-1234");
+
+        check_no_match(Enabled::PATTERN_HEADERS, &mut short_corr_id);
+
+        let mut invalid_loy_id = Request::builder();
+        let _ = invalid_loy_id.header("X-Correlation-Id", "12345");
+        let _ = invalid_loy_id.header("X-Loyalty-Id", "Abcd-1234");
+
+        check_no_match(Enabled::PATTERN_HEADERS, &mut invalid_loy_id);
     }
 }
