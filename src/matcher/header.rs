@@ -103,7 +103,9 @@ impl PatternMatch {
                 actual == expected
             }
         } else if let Ok(expected) = either.right_ref() {
-            if let Ok(regex) = generate_regex(actual, expected) {
+            try_trace!(self.stdout, "Checking {} against {}", actual, expected);
+            if let Ok(regex) = generate_regex(expected) {
+                try_trace!(self.stdout, "Regex: {:?}", regex);
                 regex.is_match(actual)
             } else {
                 false
@@ -137,8 +139,8 @@ impl Slogger for PatternMatch {
 
 cached_key_result!{
     REGEX: UnboundCache<String, Regex> = UnboundCache::new();
-    Key = { actual.to_string() };
-    fn generate_regex(actual: &str, header_pattern: &str) -> Result<Regex, String> = {
+    Key = { header_pattern.to_string() };
+    fn generate_regex(header_pattern: &str) -> Result<Regex, String> = {
         let regex_result = Regex::new(header_pattern);
 
         match regex_result {
@@ -173,8 +175,15 @@ impl RequestMatch for PatternMatch {
                 .collect();
 
             if matched_header.len() == 1 && matched_header[0] {
+                try_trace!(
+                    self.stdout,
+                    "Matched Header: {} - {}",
+                    matched_header.len(),
+                    matched_header[0]
+                );
                 Ok(Some(true))
             } else {
+                try_trace!(self.stdout, "Matched Header: {}", matched_header.len());
                 Ok(Some(false))
             }
         } else {

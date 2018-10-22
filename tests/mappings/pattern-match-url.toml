@@ -1,0 +1,12 @@
+name = "Pattern Match - URL"
+priority = 4
+
+[request]
+url_pattern = "/admin/*"
+
+[response]
+body_file_name = "pattern-match-url-response.json"
+
+[[response.headers]]
+key = "Content-Type"
+value = "application/json"

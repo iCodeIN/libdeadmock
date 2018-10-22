@@ -1,5 +1,5 @@
-name = "Headers Pattern Match"
-priority = 3
+name = "Pattern Match - Headers"
+priority = 2
 
 [request]
 
@@ -18,7 +18,7 @@ left = "X-Loyalty-Id"
 right = '^[a-z]{4}-\d{4}$'
 
 [response]
-body_file_name = "header-pattern-match-response.json"
+body_file_name = "pattern-match-headers-response.json"
 
 [[response.headers]]
 key = "Content-Type"

@@ -106,7 +106,7 @@ impl PatternMatch {
                 actual == expected
             }
         } else if let Ok(expected) = either.right_ref() {
-            if let Ok(regex) = generate_regex(actual, expected) {
+            if let Ok(regex) = generate_regex(expected) {
                 regex.is_match(actual)
             } else {
                 false
@@ -150,8 +150,8 @@ impl fmt::Display for PatternMatch {
 
 cached_key_result!{
     REGEX: UnboundCache<String, Regex> = UnboundCache::new();
-    Key = { actual.to_string() };
-    fn generate_regex(actual: &str, header_pattern: &str) -> Result<Regex, String> = {
+    Key = { header_pattern.to_string() };
+    fn generate_regex(header_pattern: &str) -> Result<Regex, String> = {
         let regex_result = Regex::new(header_pattern);
 
         match regex_result {

@@ -1,0 +1,12 @@
+name = "Exact Match - Method"
+priority = 1
+
+[request]
+method = "PATCH"
+
+[response]
+body_file_name = "exact-match-method-response.txt"
+
+[[response.headers]]
+key = "Content-Type"
+value = "text/plain"

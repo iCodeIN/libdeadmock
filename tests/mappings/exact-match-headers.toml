@@ -1,20 +1,17 @@
-name = "URL and Headers Exact Match"
+name = "Exact Match - Headers"
 priority = 1
-
-[request]
-url = "/json"
 
 [[request.headers]]
 key = "Content-Type"
 value = "application/json"
 
+[[request.headers]]
+key = "X-Exact-Headers"
+value = "true"
+
 [response]
-body_file_name = "json-response.json"
+body_file_name = "exact-match-headers-response.json"
 
 [[response.headers]]
 key = "Content-Type"
-value = "application/json"
-
-[[response.headers]]
-key = "Accept"
 value = "application/json"

@@ -1,0 +1,13 @@
+name = "Exact Match - Method & URL"
+priority = 2
+
+[request]
+method = "GET"
+url = "/json"
+
+[response]
+body_file_name = "exact-match-method-url-response.txt"
+
+[[response.headers]]
+key = "Content-Type"
+value = "text/plain"

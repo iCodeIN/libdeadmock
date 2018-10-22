@@ -1,0 +1,13 @@
+name = "Exact Match - Header"
+priority = 1
+
+[request.header]
+key = "X-Exact-Match"
+value = "header"
+
+[response]
+body_file_name = "exact-match-header-response.json"
+
+[[response.headers]]
+key = "Content-Type"
+value = "application/json"

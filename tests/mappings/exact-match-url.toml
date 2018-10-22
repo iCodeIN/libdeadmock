@@ -1,11 +1,11 @@
-name = "URL Exact Match"
+name = "Exact Match - URL"
 priority = 1
 
 [request]
 url = "/plaintext"
 
 [response]
-body_file_name = "plaintext-response.txt"
+body_file_name = "exact-match-url-response.txt"
 
 [[response.headers]]
 key = "Content-Type"

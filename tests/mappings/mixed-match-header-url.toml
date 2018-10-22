@@ -1,22 +1,18 @@
-name = "Header Pattern Match"
+name = "Mixed Match - Header & URL"
 priority = 2
 
 [request]
-url = "/header-pattern"
+url = "/mixed-match"
 
 [request.header_pattern.key]
 left = "x-pattern-match"
 
 [request.header_pattern.value]
-right = "^yoda.*"
+right = "^mixed.*"
 
 [response]
-body_file_name = "header-pattern-match-response.json"
+body_file_name = "mixed-match-header-url-response.json"
 
 [[response.headers]]
 key = "Content-Type"
-value = "application/json"
-
-[[response.headers]]
-key = "Accept"
 value = "application/json"

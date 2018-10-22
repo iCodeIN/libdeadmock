@@ -410,6 +410,8 @@ mod test {
     use crate::matcher::Enabled;
     use http::request::Builder;
     use http::Request;
+    // use slog::{o, Drain};
+    // use slog_term;
 
     #[test]
     fn enable_pattern() {
@@ -443,93 +445,21 @@ mod test {
         assert!(!all_exact.contains(Enabled::PATTERN_HEADERS));
     }
 
-    #[test]
-    #[allow(box_pointers)]
-    fn matching() {
-        assert!(test_files().is_ok());
-        let mappings = test_mappings().expect("Unable to setup mappings!");
-
-        let mut request_builder = Request::builder();
-        let _ = request_builder.uri("/json");
-        let _ = request_builder.header("Content-Type", "application/json");
-
-        let enabled = Enabled::EXACT_URL | Enabled::EXACT_METHOD | Enabled::EXACT_HEADERS;
-        let matcher = Matcher::new(enabled, None, None);
-        assert!(!matcher.matchers.is_empty());
-
-        if let Ok(request) = request_builder.body(()) {
-            if let Ok(mapping) = matcher.get_match(&request, &mappings) {
-                assert_eq!(*mapping.priority(), 1);
-                assert!(mapping.response().body_file_name().is_some());
-            } else {
-                assert!(false, "Unable to find a matching mapping!");
-            }
-        } else {
-            assert!(false, "Unable to build the request to test!");
-        }
-    }
-
-    #[test]
-    #[allow(box_pointers)]
-    fn matching_one_header() {
-        let mappings = test_mappings().expect("Unable to setup mappings!");
-
-        let mut request_builder = Request::builder();
-        let _ = request_builder.uri("/json");
-        let _ = request_builder.header("Content-Type", "application/json");
-
-        let enabled = Enabled::EXACT_URL | Enabled::EXACT_METHOD | Enabled::EXACT_HEADER;
-        let matcher = Matcher::new(enabled, None, None);
-        assert!(!matcher.matchers.is_empty());
-
-        if let Ok(request) = request_builder.body(()) {
-            if let Ok(mapping) = matcher.get_match(&request, &mappings) {
-                assert_eq!(*mapping.priority(), 1);
-                assert!(mapping.response().body_file_name().is_some());
-            } else {
-                assert!(false, "Unable to find a matching mapping!");
-            }
-        } else {
-            assert!(false, "Unable to build the request to test!");
-        }
-    }
-
-    #[test]
-    #[allow(box_pointers)]
-    fn match_header_pattern() {
-        let mappings = test_mappings().expect("Unable to setup mappings!");
-
-        let mut request_builder = Request::builder();
-        let _ = request_builder.uri("/json");
-        let _ = request_builder.header("Content-Type", "application/json");
-        let _ = request_builder.header("X-Pattern-Match", "yoda-darth");
-
-        let enabled = Enabled::PATTERN_HEADER;
-        let matcher = Matcher::new(enabled, None, None);
-        assert!(!matcher.matchers.is_empty());
-
-        if let Ok(request) = request_builder.body(()) {
-            if let Ok(mapping) = matcher.get_match(&request, &mappings) {
-                assert_eq!(*mapping.priority(), 2);
-                assert!(mapping.response().body_file_name().is_some());
-            } else {
-                assert!(false, "Unable to find a matching mapping!");
-            }
-        } else {
-            assert!(false, "Unable to build the request to test!");
-        }
-    }
-
     #[allow(box_pointers)]
     fn check_request(enabled: Enabled, request_builder: &mut Builder, priority: u8, name: &str) {
         let mappings = test_mappings().expect("Unable to setup mappings!");
+        // let decorator = slog_term::PlainDecorator::new(std::io::stderr());
+        // let drain = slog_term::CompactFormat::new(decorator).build().fuse();
+        // let drain = slog_async::Async::new(drain).build().fuse();
+        // let log = slog::Logger::root(drain, o!("test" => "test"));
+
         let matcher = Matcher::new(enabled, None, None);
         assert!(!matcher.matchers.is_empty());
 
         if let Ok(request) = request_builder.body(()) {
             if let Ok(mapping) = matcher.get_match(&request, &mappings) {
-                assert_eq!(*mapping.priority(), priority);
                 assert_eq!(mapping.name(), name);
+                assert_eq!(*mapping.priority(), priority);
                 assert!(mapping.response().body_file_name().is_some());
             } else {
                 assert!(false, "Unable to find a matching mapping!");
@@ -551,58 +481,127 @@ mod test {
             assert!(false, "Unable to build the request to test!");
         }
     }
+
     #[test]
-    fn match_method_pattern() {
-        let mut put_request = Request::builder();
-        let _ = put_request.uri("/toodles");
-        let _ = put_request.header("Content-Type", "application/json");
-        let _ = put_request.method("PUT");
+    #[allow(box_pointers)]
+    fn load_test_files() {
+        assert!(test_files().is_ok());
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn exact_match_header() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.header("X-Exact-Match", "header");
 
         check_request(
-            Enabled::PATTERN_METHOD,
-            &mut put_request,
-            3,
-            "Method Pattern Match",
-        );
-
-        let mut post_request = Request::builder();
-        let _ = post_request.uri("/poodles");
-        let _ = post_request.header("Content-Type", "application/json");
-        let _ = post_request.method("POST");
-
-        check_request(
-            Enabled::PATTERN_METHOD,
-            &mut post_request,
-            3,
-            "Method Pattern Match",
-        );
-
-        let mut patch_request = Request::builder();
-        let _ = patch_request.uri("/noodles");
-        let _ = patch_request.header("Content-Type", "application/json");
-        let _ = patch_request.method("PATCH");
-
-        check_request(
-            Enabled::PATTERN_METHOD,
-            &mut patch_request,
-            3,
-            "Method Pattern Match",
+            Enabled::EXACT_HEADER,
+            &mut request_builder,
+            1,
+            "Exact Match - Header",
         );
     }
 
     #[test]
     #[allow(box_pointers)]
-    fn match_headers_pattern() {
+    fn exact_match_headers() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.header("Content-Type", "application/json");
+        let _ = request_builder.header("X-Exact-Headers", "true");
+
+        check_request(
+            Enabled::EXACT_HEADERS,
+            &mut request_builder,
+            1,
+            "Exact Match - Headers",
+        );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn exact_match_method() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.method("PATCH");
+
+        check_request(
+            Enabled::EXACT_METHOD,
+            &mut request_builder,
+            1,
+            "Exact Match - Method",
+        );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn exact_match_url() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.uri("/plaintext");
+
+        check_request(
+            Enabled::EXACT_URL,
+            &mut request_builder,
+            1,
+            "Exact Match - URL",
+        );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn exact_match_method_and_url() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.uri("/json");
+        let _ = request_builder.method("GET");
+
+        check_request(
+            Enabled::EXACT_URL | Enabled::EXACT_METHOD,
+            &mut request_builder,
+            2,
+            "Exact Match - Method & URL",
+        );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn exact_match_method_url_and_header() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.uri("/header-method-url");
+        let _ = request_builder.method("GET");
+        let _ = request_builder.header("X-Exact-Match", "header-method-url");
+
+        check_request(
+            Enabled::EXACT_HEADER | Enabled::EXACT_METHOD | Enabled::EXACT_URL,
+            &mut request_builder,
+            3,
+            "Exact Match - Header, Method, & URL",
+        );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn pattern_match_header() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.header("X-Pattern-Match", "yoda-darth");
+
+        check_request(
+            Enabled::PATTERN_HEADER,
+            &mut request_builder,
+            1,
+            "Pattern Match - Header",
+        );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn pattern_match_headers() {
         let mut headers_request = Request::builder();
-        let _ = headers_request.uri("/header-pattern");
         let _ = headers_request.header("X-Correlation-Id", "12345");
         let _ = headers_request.header("X-Loyalty-Id", "abcd-1234");
 
         check_request(
             Enabled::PATTERN_HEADERS,
             &mut headers_request,
-            3,
-            "Headers Pattern Match",
+            2,
+            "Pattern Match - Headers",
         );
 
         let mut long_corr_id = Request::builder();
@@ -622,5 +621,73 @@ mod test {
         let _ = invalid_loy_id.header("X-Loyalty-Id", "Abcd-1234");
 
         check_no_match(Enabled::PATTERN_HEADERS, &mut invalid_loy_id);
+    }
+
+    #[test]
+    fn pattern_match_method() {
+        let mut put_request = Request::builder();
+        let _ = put_request.uri("/toodles");
+        let _ = put_request.header("Content-Type", "application/json");
+        let _ = put_request.method("PUT");
+
+        check_request(
+            Enabled::PATTERN_METHOD,
+            &mut put_request,
+            3,
+            "Pattern Match - Method",
+        );
+
+        let mut post_request = Request::builder();
+        let _ = post_request.uri("/poodles");
+        let _ = post_request.header("Content-Type", "application/json");
+        let _ = post_request.method("POST");
+
+        check_request(
+            Enabled::PATTERN_METHOD,
+            &mut post_request,
+            3,
+            "Pattern Match - Method",
+        );
+
+        let mut patch_request = Request::builder();
+        let _ = patch_request.uri("/noodles");
+        let _ = patch_request.header("Content-Type", "application/json");
+        let _ = patch_request.method("PATCH");
+
+        check_request(
+            Enabled::PATTERN_METHOD,
+            &mut patch_request,
+            3,
+            "Pattern Match - Method",
+        );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn pattern_match_url() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.uri("/admin/list");
+
+        check_request(
+            Enabled::PATTERN_URL,
+            &mut request_builder,
+            4,
+            "Pattern Match - URL",
+        );
+    }
+
+    #[test]
+    #[allow(box_pointers)]
+    fn mixed_match_header() {
+        let mut request_builder = Request::builder();
+        let _ = request_builder.uri("/mixed-match");
+        let _ = request_builder.header("X-Pattern-Match", "mixed-match");
+
+        check_request(
+            Enabled::EXACT_URL | Enabled::PATTERN_HEADER,
+            &mut request_builder,
+            2,
+            "Mixed Match - Header & URL",
+        );
     }
 }

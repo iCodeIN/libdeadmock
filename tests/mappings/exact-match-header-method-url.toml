@@ -1,0 +1,17 @@
+name = "Exact Match - Header, Method, & URL"
+priority = 3
+
+[request]
+method = "GET"
+url = "/header-method-url"
+
+[request.header]
+key = "X-Exact-Match"
+value = "header-method-url"
+
+[response]
+body_file_name = "exact-match-header-method-url-response.txt"
+
+[[response.headers]]
+key = "Content-Type"
+value = "text/plain"
