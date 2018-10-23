@@ -12,7 +12,6 @@ use crate::config::Request as RequestConfig;
 use crate::error::Error;
 use crate::matcher::{RequestMatch, Slogger};
 use http::Request;
-use lazy_static::lazy_static;
 use regex::Regex;
 use slog::{trace, Logger};
 use slog_try::try_trace;

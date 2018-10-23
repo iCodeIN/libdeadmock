@@ -20,7 +20,6 @@ use hyper::client::HttpConnector;
 use hyper::{Client, Request as HyperRequest};
 use hyper_proxy::{Intercept, Proxy, ProxyConnector};
 use hyper_tls::HttpsConnector;
-use lazy_static::lazy_static;
 use slog::Logger;
 use slog::{error, info, trace};
 use slog_try::{try_error, try_info, try_trace};
