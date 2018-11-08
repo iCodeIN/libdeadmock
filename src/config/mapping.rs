@@ -47,7 +47,7 @@ impl PartialOrd for Mapping {
 impl fmt::Display for Mapping {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let out = serde_json::to_string_pretty(self).map_err(|_| fmt::Error)?;
-        writeln!(f);
+        writeln!(f)?;
         write!(f, "{}", out)
     }
 }
