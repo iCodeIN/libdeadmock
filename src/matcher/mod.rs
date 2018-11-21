@@ -7,12 +7,12 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request matching for the server.
+use bitflags::bitflags;
 #[cfg(feature = "headers")]
 use crate::config::Header;
 use crate::config::{Mapping, Mappings, Request as RequestConfig};
 use crate::error::Error;
 use crate::error::ErrorKind::MappingNotFound;
-use bitflags::bitflags;
 #[cfg(feature = "headers")]
 use http::header::{HeaderName, HeaderValue};
 use http::Request;

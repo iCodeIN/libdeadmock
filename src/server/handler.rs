@@ -7,12 +7,12 @@
 // modified, or distributed except according to those terms.
 
 //! Request/Response handling for the async runtime.
+use cached::{cached_key_result, UnboundCache};
 use crate::config;
 use crate::matcher::{Enabled, Matcher};
 use crate::server::codec;
 use crate::server::header;
 use crate::util::{self, FutResponse};
-use cached::{cached_key_result, UnboundCache};
 use failure::Error;
 use futures::{future, Future, Sink, Stream};
 use http::{Request, Response, StatusCode};
