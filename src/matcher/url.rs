@@ -7,10 +7,10 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request URL matching
-use cached::{cached_key_result, UnboundCache};
 use crate::config::Request as RequestConfig;
 use crate::error::Error;
 use crate::matcher::{RequestMatch, Slogger};
+use cached::{cached_key_result, UnboundCache};
 use http::Request;
 use regex::Regex;
 use slog::{trace, Logger};
@@ -86,7 +86,7 @@ impl Slogger for PatternMatch {
     }
 }
 
-cached_key_result!{
+cached_key_result! {
     REGEX: UnboundCache<String, Regex> = UnboundCache::new();
     Key = { path.to_string() };
     fn generate_regex(path: &str, url_pattern: &str) -> Result<Regex, String> = {

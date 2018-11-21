@@ -7,10 +7,10 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request single header matching
-use cached::{cached_key_result, UnboundCache};
 use crate::config::{self, HeaderPattern, Request as RequestConfig};
 use crate::error::Error;
 use crate::matcher::{self, RequestMatch, Slogger};
+use cached::{cached_key_result, UnboundCache};
 use http::Request;
 use libeither::Either;
 use regex::Regex;
@@ -136,7 +136,7 @@ impl Slogger for PatternMatch {
     }
 }
 
-cached_key_result!{
+cached_key_result! {
     REGEX: UnboundCache<String, Regex> = UnboundCache::new();
     Key = { header_pattern.to_string() };
     fn generate_regex(header_pattern: &str) -> Result<Regex, String> = {

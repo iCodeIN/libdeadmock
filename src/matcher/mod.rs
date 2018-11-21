@@ -7,12 +7,12 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request matching for the server.
-use bitflags::bitflags;
 #[cfg(feature = "headers")]
 use crate::config::Header;
 use crate::config::{Mapping, Mappings, Request as RequestConfig};
 use crate::error::Error;
 use crate::error::ErrorKind::MappingNotFound;
+use bitflags::bitflags;
 #[cfg(feature = "headers")]
 use http::header::{HeaderName, HeaderValue};
 use http::Request;
@@ -46,7 +46,7 @@ pub use self::url::ExactMatch as ExactMatchUrl;
 #[cfg(all(feature = "pattern_match", feature = "url"))]
 pub use self::url::PatternMatch as PatternMatchUrl;
 
-bitflags!{
+bitflags! {
     /// Enabled flags for request matching types
     pub struct Enabled: u32 {
         /// Enable the exact matching on url

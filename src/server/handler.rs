@@ -7,12 +7,12 @@
 // modified, or distributed except according to those terms.
 
 //! Request/Response handling for the async runtime.
-use cached::{cached_key_result, UnboundCache};
 use crate::config;
 use crate::matcher::{Enabled, Matcher};
 use crate::server::codec;
 use crate::server::header;
 use crate::util::{self, FutResponse};
+use cached::{cached_key_result, UnboundCache};
 use failure::Error;
 use futures::{future, Future, Sink, Stream};
 use http::{Request, Response, StatusCode};
@@ -317,7 +317,7 @@ async fn run_request<C>(
     }
 }
 
-cached_key_result!{
+cached_key_result! {
     STATIC_RESPONSE: UnboundCache<String, String> = UnboundCache::new();
     Key = { filename.to_string() };
     fn load(files_path: PathBuf, filename: &str) -> Result<String, &str> = {

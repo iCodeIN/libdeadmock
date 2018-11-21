@@ -7,8 +7,8 @@
 // modified, or distributed except according to those terms.
 
 //! Logging for the server.
-use clap::ArgMatches;
 use crate::config::Runtime;
+use clap::ArgMatches;
 use failure::Error;
 use getset::Getters;
 use slog::{o, Drain, Level, Logger};
