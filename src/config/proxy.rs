@@ -7,8 +7,8 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` proxy configuration
-use clap::ArgMatches;
 use crate::error::ErrorKind::InvalidProxyConfig;
+use clap::ArgMatches;
 use failure::Error;
 use getset::{Getters, Setters};
 use std::convert::TryFrom;
