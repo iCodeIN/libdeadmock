@@ -7,10 +7,10 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` request/response mappings
+use clap::ArgMatches;
 use crate::config::Mapping;
 use crate::error::ErrorKind::MappingKeyCollision;
 use crate::util;
-use clap::ArgMatches;
 use failure::Error;
 use getset::Getters;
 use serde_derive::{Deserialize, Serialize};

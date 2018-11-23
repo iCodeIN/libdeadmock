@@ -7,10 +7,10 @@
 // modified, or distributed except according to those terms.
 
 //! HTTP request method matching
+use cached::{cached_key_result, UnboundCache};
 use crate::config::{self, Request as RequestConfig};
 use crate::error::Error;
 use crate::matcher::{RequestMatch, Slogger};
-use cached::{cached_key_result, UnboundCache};
 use http::Request;
 use regex::Regex;
 use slog::{trace, Logger};
