@@ -21,7 +21,6 @@ bytes = "0"
 cached = "0"
 chrono = "0"
 clap = "2"
-failure = "0"
 futures = "0.1"
 getset = "0"
 http = "0"
@@ -69,3 +68,6 @@ headers = []
 header = []
 url = []
 method = []
+
+[patch.crates-io]
+cached = { path = "../cached" }

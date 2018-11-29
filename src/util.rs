@@ -7,7 +7,7 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` utilities
-use failure::Error;
+use crate::error::Error;
 use futures::{future, Future};
 use http::header::{HeaderValue, CONTENT_TYPE};
 use http::{Response, StatusCode};

@@ -10,8 +10,7 @@
 #[cfg(feature = "headers")]
 use crate::config::Header;
 use crate::config::{Mapping, Mappings, Request as RequestConfig};
-use crate::error::Error;
-use crate::error::ErrorKind::MappingNotFound;
+use crate::error::Error::{self, MappingNotFound};
 use bitflags::bitflags;
 #[cfg(feature = "headers")]
 use http::header::{HeaderName, HeaderValue};
@@ -183,7 +182,7 @@ crate type HeaderTuple = (HeaderName, HeaderValue);
 crate type HeaderTupleRef<'a> = (&'a HeaderName, &'a HeaderValue);
 
 #[cfg(feature = "headers")]
-crate fn to_header_tuple(header: &Header) -> Result<HeaderTuple, failure::Error> {
+crate fn to_header_tuple(header: &Header) -> Result<HeaderTuple, Error> {
     Ok((
         HeaderName::from_bytes(header.key().as_bytes())?,
         HeaderValue::from_bytes(header.value().as_bytes())?,
@@ -358,7 +357,7 @@ impl Matcher {
             })
             .filter_map(|(_uuid, mapping)| self.is_match(request, mapping))
             .min()
-            .ok_or_else(|| MappingNotFound.into())
+            .ok_or_else(|| MappingNotFound)
     }
 
     fn is_match(&self, request: &Request<()>, mapping: &Mapping) -> Option<Mapping> {

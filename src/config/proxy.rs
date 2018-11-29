@@ -7,9 +7,8 @@
 // modified, or distributed except according to those terms.
 
 //! `libdeadmock` proxy configuration
-use crate::error::ErrorKind::InvalidProxyConfig;
+use crate::error::Error::{self, InvalidProxyConfig};
 use clap::ArgMatches;
-use failure::Error;
 use getset::{Getters, Setters};
 use std::convert::TryFrom;
 
@@ -21,8 +20,8 @@ use std::convert::TryFrom;
 /// ```
 /// # #![feature(try_from)]
 /// # use clap::{App, Arg};
-/// # use failure::Error;
 /// # use libdeadmock::config;
+/// # use std::error::Error;
 /// # use std::convert::TryFrom;
 /// #
 /// # fn test_cli() -> App<'static, 'static> {
@@ -143,7 +142,7 @@ impl<'a> TryFrom<&'a ArgMatches<'a>> for Proxy {
                 proxy_password,
             })
         } else if use_proxy && proxy_url.is_none() {
-            Err(InvalidProxyConfig.into())
+            Err(InvalidProxyConfig)
         } else {
             Ok(Self {
                 proxy_url,
@@ -279,10 +278,7 @@ mod test {
         let matches = test_cli_no_requires().get_matches_from(arg_vec);
         match Proxy::try_from(&matches) {
             Ok(_) => assert!(false, "Not expected to succeed!"),
-            Err(e) => assert_eq!(
-                format!("{}", e),
-                "invalid proxy configuration! proxy url is required"
-            ),
+            Err(e) => assert_eq!(format!("{}", e), "invalid proxy configuration!"),
         }
     }
 }

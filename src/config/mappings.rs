@@ -8,10 +8,9 @@
 
 //! `libdeadmock` request/response mappings
 use crate::config::Mapping;
-use crate::error::ErrorKind::MappingKeyCollision;
+use crate::error::Error::{self, MappingKeyCollision};
 use crate::util;
 use clap::ArgMatches;
-use failure::Error;
 use getset::Getters;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -49,7 +48,7 @@ impl<'a> TryFrom<&'a ArgMatches<'a>> for Mappings {
             let _bytes_read = reader.read_to_end(&mut buffer)?;
             let mapping: Mapping = toml::from_slice(&buffer)?;
             if let Some(_v) = mappings.inner.insert(Uuid::new_v4(), mapping) {
-                Err(MappingKeyCollision.into())
+                Err(MappingKeyCollision)
             } else {
                 Ok(())
             }
@@ -61,8 +60,8 @@ impl<'a> TryFrom<&'a ArgMatches<'a>> for Mappings {
 #[cfg(test)]
 crate mod test {
     use super::Mappings;
+    use crate::error::Error;
     use clap::{App, Arg};
-    use failure::Error;
     use std::convert::TryFrom;
 
     crate fn test_mappings() -> Result<Mappings, Error> {

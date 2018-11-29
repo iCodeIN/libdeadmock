@@ -8,8 +8,8 @@
 
 //! Logging for the server.
 use crate::config::Runtime;
+use crate::error::Error;
 use clap::ArgMatches;
-use failure::Error;
 use getset::Getters;
 use slog::{o, Drain, Level, Logger};
 use slog_async::Async;

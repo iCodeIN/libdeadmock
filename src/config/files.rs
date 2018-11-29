@@ -7,8 +7,8 @@
 // modified, or distributed except according to those terms.
 
 //! Files configuration
+use crate::error::Error;
 use clap::ArgMatches;
-use failure::Error;
 use getset::{Getters, Setters};
 use std::convert::TryFrom;
 use std::path::PathBuf;
@@ -40,8 +40,8 @@ impl<'a> TryFrom<&'a ArgMatches<'a>> for Files {
 #[cfg(test)]
 crate mod test {
     use super::Files;
+    use crate::error::Error;
     use clap::{App, Arg};
-    use failure::Error;
     use std::convert::TryFrom;
 
     crate fn test_files() -> Result<Files, Error> {
