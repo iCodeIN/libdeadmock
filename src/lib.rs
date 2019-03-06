@@ -9,14 +9,7 @@
 //! `libdeadmock`
 //!
 //! Configuration and Async runtime for the deadmock server.
-#![feature(
-    await_macro,
-    async_await,
-    crate_visibility_modifier,
-    duration_as_u128,
-    futures_api,
-    try_from
-)]
+#![feature(await_macro, async_await, crate_visibility_modifier, futures_api)]
 #![deny(
     clippy::all,
     clippy::pedantic,
