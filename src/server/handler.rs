@@ -158,43 +158,25 @@ fn http_response(
         let (tx, rx) = futures::sync::mpsc::unbounded();
         let headers = response_config.additional_proxy_request_headers().clone();
         let proxy_config = handler.proxy_config.clone();
-        tokio::spawn_async(
-            async move {
-                if *proxy_config.use_proxy() {
-                    if let Some(url_str) = proxy_config.proxy_url() {
-                        let proxy_uri = url_str.parse().expect("Unable to parse proxy URI");
-                        let mut proxy = Proxy::new(Intercept::All, proxy_uri);
-                        if let Some(username) = proxy_config.proxy_username() {
-                            if let Some(password) = proxy_config.proxy_password() {
-                                if let Ok(creds) = Credentials::basic(username, password) {
-                                    proxy.set_authorization(creds);
-                                }
+        tokio::spawn_async(async move {
+            if *proxy_config.use_proxy() {
+                if let Some(url_str) = proxy_config.proxy_url() {
+                    let proxy_uri = url_str.parse().expect("Unable to parse proxy URI");
+                    let mut proxy = Proxy::new(Intercept::All, proxy_uri);
+                    if let Some(username) = proxy_config.proxy_username() {
+                        if let Some(password) = proxy_config.proxy_password() {
+                            if let Ok(creds) = Credentials::basic(username, password) {
+                                proxy.set_authorization(creds);
                             }
                         }
-
-                        let connector = HttpConnector::new(4);
-                        let proxy_connector = ProxyConnector::from_proxy(connector, proxy)
-                            .expect("Unable to create proxy connector!");
-                        let client = Client::builder()
-                            .set_host(true)
-                            .build::<_, hyper::Body>(proxy_connector);
-                        await!(run_request(
-                            client,
-                            tx,
-                            full_url,
-                            handler.stdout.clone(),
-                            handler.stderr.clone(),
-                            headers
-                        ));
-                    } else {
-                        panic!("Unable to determine proxy url!");
                     }
-                } else if full_url.starts_with("https") {
-                    let https_connector =
-                        HttpsConnector::new(4).expect("TLS initialization failed");
+
+                    let connector = HttpConnector::new(4);
+                    let proxy_connector = ProxyConnector::from_proxy(connector, proxy)
+                        .expect("Unable to create proxy connector!");
                     let client = Client::builder()
                         .set_host(true)
-                        .build::<_, hyper::Body>(https_connector);
+                        .build::<_, hyper::Body>(proxy_connector);
                     await!(run_request(
                         client,
                         tx,
@@ -204,21 +186,36 @@ fn http_response(
                         headers
                     ));
                 } else {
-                    let http_connector = HttpConnector::new(4);
-                    let client = Client::builder()
-                        .set_host(true)
-                        .build::<_, hyper::Body>(http_connector);
-                    await!(run_request(
-                        client,
-                        tx,
-                        full_url,
-                        handler.stdout,
-                        handler.stderr,
-                        headers
-                    ));
+                    panic!("Unable to determine proxy url!");
                 }
-            },
-        );
+            } else if full_url.starts_with("https") {
+                let https_connector = HttpsConnector::new(4).expect("TLS initialization failed");
+                let client = Client::builder()
+                    .set_host(true)
+                    .build::<_, hyper::Body>(https_connector);
+                await!(run_request(
+                    client,
+                    tx,
+                    full_url,
+                    handler.stdout.clone(),
+                    handler.stderr.clone(),
+                    headers
+                ));
+            } else {
+                let http_connector = HttpConnector::new(4);
+                let client = Client::builder()
+                    .set_host(true)
+                    .build::<_, hyper::Body>(http_connector);
+                await!(run_request(
+                    client,
+                    tx,
+                    full_url,
+                    handler.stdout,
+                    handler.stderr,
+                    headers
+                ));
+            }
+        });
 
         Box::new(
             rx.fold(String::new(), |mut buffer, res| {
